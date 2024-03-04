@@ -36,6 +36,9 @@
 *.sdk
 *.hw
 *.ip_user_files
+# remove if causing issues
+*.runs
+*.sim
 
 ### IP synth
 *_synth_*
@@ -103,3 +106,5 @@
 */*/*/bd/*/ip/*/*.tcl
 hw_handoff
 ipshared
+*.log
+*.jou

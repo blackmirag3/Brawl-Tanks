@@ -20,15 +20,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module slow_clock(
-input CLOCK,
-input [31:0] count,
-output reg SLOW_CLOCK = 0
-    );
-    reg [3:0] counter = 4'b0000;
+module slow_clock(input CLOCK, input [31:0] m, output reg SLOW_CLOCK = 0);
+
+    reg [31:0] counter = 0;
+    
     always @ (posedge CLOCK) begin
-    counter <= (counter == count) ? 0 : counter + 1;
-    SLOW_CLOCK <= (counter == 0) ? ~SLOW_CLOCK : SLOW_CLOCK;
+        counter <= (counter == m) ? 0 : counter + 1;
+        SLOW_CLOCK <= (counter == 0) ? ~SLOW_CLOCK : SLOW_CLOCK;
     end
     
 endmodule
