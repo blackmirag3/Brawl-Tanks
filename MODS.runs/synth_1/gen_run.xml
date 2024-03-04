@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="synth_1" LaunchTime="1709183384">
+<GenRun Id="synth_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1709520778">
+  <File Type="PA-TCL" Name="Top_Student.tcl"/>
+  <File Type="RDS-PROPCONSTRS" Name="Top_Student_drc_synth.rpt"/>
+  <File Type="REPORTS-TCL" Name="Top_Student_reports.tcl"/>
+  <File Type="RDS-RDS" Name="Top_Student.vds"/>
+  <File Type="RDS-UTIL" Name="Top_Student_utilization_synth.rpt"/>
+  <File Type="RDS-UTIL-PB" Name="Top_Student_utilization_synth.pb"/>
+  <File Type="RDS-DCP" Name="Top_Student.dcp"/>
+  <File Type="VDS-TIMINGSUMMARY" Name="Top_Student_timing_summary_synth.rpt"/>
+  <File Type="VDS-TIMING-PB" Name="Top_Student_timing_summary_synth.pb"/>
   <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1">
     <Filter Type="Srcs"/>
     <File Path="$PSRCDIR/sources_1/new/Top_Student.v">
@@ -163,6 +172,12 @@
     <Config>
       <Option Name="DesignMode" Val="RTL"/>
       <Option Name="TopModule" Val="Top_Student"/>
+    </Config>
+  </FileSet>
+  <FileSet Name="constrs_in" Type="Constrs" RelSrcDir="$PSRCDIR/constrs_1">
+    <Filter Type="Constrs"/>
+    <Config>
+      <Option Name="ConstrsType" Val="XDC"/>
     </Config>
   </FileSet>
   <Strategy Version="1" Minor="2">

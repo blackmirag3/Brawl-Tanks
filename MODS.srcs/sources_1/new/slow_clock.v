@@ -30,5 +30,6 @@ output reg SLOW_CLOCK = 0
     counter <= (counter == count) ? 0 : counter + 1;
     SLOW_CLOCK <= (counter == 0) ? ~SLOW_CLOCK : SLOW_CLOCK;
     end
+    
 endmodule
 
