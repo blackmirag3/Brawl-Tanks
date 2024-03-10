@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, output [7:0] JC);
+module Top_Student (input clk, btnC, btnD, [15:0] sw, output [7:0] JC);
     
     wire clk_6p25Mhz;
     wire fb, send_pixel, sample_pixel;
@@ -20,7 +20,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, output [
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
     
-    slow_clock c0 (clk, 32'd7, clk_6p25Mhz);
+    slow_clock c0(.CLOCK(clk), .m(32'd 7), .SLOW_CLOCK(clk_6p25Mhz));
     
     Oled_Display unit_oled (.clk(clk_6p25Mhz), 
                         .reset(0), 
@@ -37,6 +37,6 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, output [
                         .vccen(JC[6]),
                         .pmoden(JC[7]));
                         
-    task_d d_unit (.clock(clk), .start(btnC), .up(btnU), .left(btnL), .right(btnR), .speed_sw(sw[0]), .x(x), .y(y), .oled_data(oled_data));
+    task_a a_unit (.clock(clk), .btnC(btnC), .btnD(btnD), .x(x), .y(y), .oled_data(oled_data));
                         
 endmodule
