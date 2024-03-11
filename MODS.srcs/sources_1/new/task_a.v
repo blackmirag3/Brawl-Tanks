@@ -40,22 +40,22 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
         
         if (btnD_debounce == 1) begin
             counter_two <= counter_two + 1;
-            isPressed = 1;
+            isPressed <= 1;
             end
         else begin
-            if (counter_two < 50 && isPressed) started_two = 1;
-            isPressed = 0;
+            if (counter_two < 50 && isPressed) started_two <= 1;
+            isPressed <= 0;
             counter_two <= 0;
         end
     end
     
     always @ (posedge clock )begin //updates every millisecond
     //A1: create red border
-        if  ((x == 3 && y >= 3 && y < 61) ||
+        oled_data <= 0;
+        if ((x == 3 && y >= 3 && y < 61) ||
                 (x == 92 && y >= 3 && y < 61) ||
                 (y == 3 && x >= 3 && x < 93) ||
                 (y == 60 && x >= 3 && x < 93)) oled_data <= red;
-        else oled_data <= 0;
 
         //A2
         if (btnC == 1) started_one = 1;
@@ -66,7 +66,7 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
             if ((x >= 6 && x < 9 && y >= 6 && y < 58) ||
                 (x >= 87 && x < 90 && y >= 6 && y < 58) ||
                 (x >= 9 && x < 87 && y >= 6 && y < 9) ||
-                (x >= 9 && x < 87 && y >= 55 && y < 58)) oled_data <= orange;
+                (x >= 9 && x < 87 && y >= 55 && y < 58))oled_data <= orange;
             //A3 sequence
             //green border 1 px
             if ((counter_one > 1999) && ((x == 11 && y >= 11 && y < 53) || 
@@ -83,7 +83,6 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
                 (x >= 75 && x < 78 && y >= 18 && y < 46) ||
                 (y >= 18 && y < 21 && x >= 19 && x < 75) ||
                 (y >= 43 && y < 46 && x >= 19 && x < 75))) oled_data <= green;
-            else oled_data <= 0;
             //A3 part 6 sequence
             
             if (started_two == 1) begin

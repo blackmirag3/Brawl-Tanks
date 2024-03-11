@@ -27,13 +27,9 @@ output reg state
     reg [31:0] counter = 0;
 
     always @ (posedge clock) begin
+        counter <= counter == 200 ? 0 : counter + state;
+        
         if (button == 1) state <= 1;
-        
-        else if (counter > 49000) begin
-            state <= 0;
-            counter <= 0;
-        end
-        
-        if (state == 1) counter <= counter + 1;
+        else if (counter >199 ) state <= 0;
     end
 endmodule
