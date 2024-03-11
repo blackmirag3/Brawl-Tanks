@@ -24,12 +24,13 @@ module debouncer(
 input clock, button,
 output reg state
     );
-    reg counter;
+    reg [31:0] counter = 0;
+
     always @ (posedge clock) begin
-        if (button == 1) state = 1;
+        if (button == 1) state <= 1;
         
-        else if (counter > 49) begin
-            state = 0;
+        else if (counter > 49000) begin
+            state <= 0;
             counter <= 0;
         end
         
