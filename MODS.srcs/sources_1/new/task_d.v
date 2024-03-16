@@ -24,7 +24,7 @@ module task_d(input clock, start, up, left, right, speed_sw, [12:0] x, y,
                 input begin_sw, trigger,
                 output reg [15:0] oled_data = 0, output reg is_running = 0);
 
-    wire clk_25Mhz, clk_1khz;
+    wire clk_1khz;
     reg [15:0] blue_c = 16'b00000_000000_11111;
     reg [15:0] white_c = 16'b11111_111111_11111;
     reg [15:0] curr_c = 16'b00000_000000_11111;
@@ -33,9 +33,8 @@ module task_d(input clock, start, up, left, right, speed_sw, [12:0] x, y,
     reg [12:0] start_min_x = 45, start_max_x = 49, start_min_y = 59, start_max_y = 63; 
     reg [1:0] button_state = 0;
     reg started = 0, reset = 0, stopped = 0;
-    reg [31:0] counter = 0, counter_slow = 0, counter_fast = 0;
+    reg [31:0] counter_slow = 0, counter_fast = 0, counter_slower = 0, counter_vert = 0, counter_hor = 0, stop_count = 0;
     
-    slow_clock c0 (.CLOCK(clock), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
     slow_clock c1 (.CLOCK(clock), .m(32'd49999), .SLOW_CLOCK(clk_1khz));
     
     always @ (posedge clk_1khz)
@@ -47,7 +46,13 @@ module task_d(input clock, start, up, left, right, speed_sw, [12:0] x, y,
                 if (up == 1) button_state <= 2'b01;
                 else if (left == 1) button_state <= 2'b10;
                 else if (right == 1) button_state <= 2'b11;
-                if (start == 1 && stopped == 1) begin
+                
+                if (stopped) begin
+                    stop_count <= stop_count == 500 ? 500 : stop_count + 1;
+                end
+                else stop_count <= 0;
+                
+                if (start == 1 && stop_count > 200) begin
                     reset <= 1;
                     button_state <= 0;
                 end
@@ -84,28 +89,31 @@ module task_d(input clock, start, up, left, right, speed_sw, [12:0] x, y,
             end
         
             if (started == 1 && reset == 0) begin
-                counter_slow <= counter_slow == 833332 ? 0 : counter_slow + 1;
-                counter_fast <= counter_fast == 555555 ? 0 : counter_fast + 1;
-                counter <= counter_slow;
+                counter_slow <= counter_slow == 3333332 ? 0 : counter_slow + 1;
+                counter_slower <= counter_slower == 6666666 ? 0 : counter_slower + 1;
+                counter_fast <= counter_fast == 2222221 ? 0 : counter_fast + 1;
+                counter_hor <= counter_fast;
+                counter_vert <= counter_fast;
                 if (speed_sw == 1) begin
-                    counter <= counter_fast;
+                    counter_hor <= counter_slow;
+                    counter_vert <= counter_slower;
                 end
                 
                 stopped <= 0;
                 case (button_state)
                     2'b01 : begin
-                        min_pos_y <= (counter == 0 && min_pos_y > 0) ? min_pos_y - 1 : min_pos_y;
-                        max_pos_y <= (counter == 0 && max_pos_y > 4) ? max_pos_y - 1 : max_pos_y;
+                        min_pos_y <= (counter_vert == 0 && min_pos_y > 0) ? min_pos_y - 1 : min_pos_y;
+                        max_pos_y <= (counter_vert == 0 && max_pos_y > 4) ? max_pos_y - 1 : max_pos_y;
                         if (min_pos_y == 0) stopped <= 1;
                     end
                     2'b10 : begin
-                        min_pos_x <= (counter == 0 && min_pos_x > 0) ? min_pos_x - 1 : min_pos_x;
-                        max_pos_x <= (counter == 0 && max_pos_x > 4) ? max_pos_x - 1 : max_pos_x;
+                        min_pos_x <= (counter_hor == 0 && min_pos_x > 0) ? min_pos_x - 1 : min_pos_x;
+                        max_pos_x <= (counter_hor == 0 && max_pos_x > 4) ? max_pos_x - 1 : max_pos_x;
                         if (min_pos_x == 0) stopped <= 1;
                     end
                     2'b11 : begin
-                        min_pos_x <= (counter == 0 && min_pos_x < 91) ? min_pos_x + 1 : min_pos_x;
-                        max_pos_x <= (counter == 0 && max_pos_x < 95) ? max_pos_x + 1 : max_pos_x;
+                        min_pos_x <= (counter_hor == 0 && min_pos_x < 91) ? min_pos_x + 1 : min_pos_x;
+                        max_pos_x <= (counter_hor == 0 && max_pos_x < 95) ? max_pos_x + 1 : max_pos_x;
                         if (max_pos_x == 95) stopped <= 1;
                     end
                 endcase

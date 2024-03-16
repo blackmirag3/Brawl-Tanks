@@ -36,11 +36,16 @@ module taskB(input clk, sw0, btnC, btnL, btnR, [12:0] x, y,
                  
     always@(posedge clk_1hz)
     begin
-        if(sw0 == 1)begin
-        taskB_count <= (taskB_count == 32'd4) ? taskB_count : taskB_count + 1 ;
-            if(taskB_count == 32'd4)begin
+        if(sw0 == 1 && trigger == 1) begin
+            taskB_count <= (taskB_count == 32'd4) ? taskB_count : taskB_count + 1 ;
+            if(taskB_count == 32'd4) begin
                 state <= 1;
             end
+        end
+        
+        if (trigger == 0) begin
+            taskB_count <= 0;
+            state <= 0;
         end
     end
     
@@ -82,17 +87,23 @@ module taskB(input clk, sw0, btnC, btnL, btnR, [12:0] x, y,
             isUsed_C <= isUsedC;        
 
         end
+        
+        if(trigger == 0)begin
+            border_position <= 5;
+            colour_state <= 0;
+            box_colour <= 0;     
+        end
     end
     
     
            
     always@(posedge clk_25Mhz)
     begin 
-        if(trigger == 1)begin
+        if(trigger == 1) begin
             is_running <= 1;
-                    if (begin_sw == 0) begin
-                        is_running <= 0;
-                    end
+            if (begin_sw == 0) begin
+                is_running <= 0;
+            end
         
             case (state)
             32'd0000: begin
@@ -223,14 +234,6 @@ module taskB(input clk, sw0, btnC, btnL, btnR, [12:0] x, y,
                 endcase
                 end
         endcase
-        end
-        
-        if(trigger == 0)begin
-            taskB_count <= 0;
-            state <= 0;
-            border_position <= 5;
-            colour_state <= 0;
-            box_colour <= 0;     
         end
         
     end
