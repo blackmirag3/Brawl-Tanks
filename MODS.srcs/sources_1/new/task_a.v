@@ -44,6 +44,7 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
         
         //shape logic
         if (started_two == 1 && has_started_two == 0) begin
+            has_started_two <= 1;
             if (shape == 0) shape = 2'b01;
             else if (shape == 2'b01) shape = 2'b10;
             else if (shape == 2'b10) shape = 2'b11;
