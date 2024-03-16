@@ -100,7 +100,7 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
                 (x >= 45 && x < 52 && (y >= 31 && y < 34))) oled_data <= orange;
             end
             else if (shape == 2'b11) begin
-                if ((x >= 45 && x < 52 && y == 29) ||
+                if ((x >= 43 && x < 52 && y == 29) ||
                 (x >= 44 && x < 51 && y == 30) ||
                 (x >= 45 && x < 50 && y == 31) ||
                 (x >= 46 && x < 49 && y == 32) || 
