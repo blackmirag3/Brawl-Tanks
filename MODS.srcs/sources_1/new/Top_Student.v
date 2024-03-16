@@ -93,7 +93,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
     task_d d_unit (.clock(clk), .start(btnC), .up(btnU), .left(btnL), .right(btnR), .speed_sw(sw[0]), .x(x), .y(y), 
                     .begin_sw(sw[4]), .trigger(trigger_d), .oled_data(d_oled), .is_running(d_running));
                     
-    always @ (posedge clk)
+    always @ (posedge clk_12p5Mhz)
     begin
         case (demo_state)
             3'd0 : begin

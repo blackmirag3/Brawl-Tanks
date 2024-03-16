@@ -65,7 +65,7 @@ module task_d(input clock, start, up, left, right, speed_sw, [12:0] x, y,
         end
     end
     
-    always @ (posedge clk_25Mhz)
+    always @ (posedge clock)
     begin
     
         if (trigger == 0) begin
