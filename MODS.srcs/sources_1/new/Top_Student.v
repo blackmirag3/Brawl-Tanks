@@ -92,6 +92,9 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
                         .led(),
                         .seg(paint_seg),
                         .colour_chooser(grp_oled));
+          
+    task_a a_unit (.clock(clk), .btnC(btnC), .btnD(btnD), .x(x), .y(y), .begin_sw(sw[1]), .trigger(trigger_a),
+                    .oled_data(a_oled), .is_running(a_running));
                
     taskB b_unit (.clk(clk), .sw0(sw[0]), .x(x), .y(y), .oled_data(b_oled), .btnC(btnC), .btnR(btnR), .btnL(btnL),
                     .begin_sw(sw[2]), .trigger(trigger_b), .is_running(b_running));
@@ -115,7 +118,14 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
                 if (sw[4] == 1) demo_state <= 3'd3;
                 if (sw[5] == 1) demo_state <= 3'd4;
             end
-            3'd1 : oled_data <= 0;
+            3'd1 : begin
+                oled_data <= a_oled;
+                trigger_a <= 1;
+                if (trigger_a == 1 && a_running == 0) begin
+                    trigger_a <= 0;
+                    demo_state <= 0;
+                end
+            end
             3'd2 : begin
                 oled_data <= b_oled;
                 trigger_b <= 1;

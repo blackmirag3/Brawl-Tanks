@@ -33,7 +33,7 @@ module task_d(input clock, start, up, left, right, speed_sw, [12:0] x, y,
     reg [12:0] start_min_x = 45, start_max_x = 49, start_min_y = 59, start_max_y = 63; 
     reg [1:0] button_state = 0;
     reg started = 0, reset = 0, stopped = 0;
-    reg [31:0] counter_slow = 0, counter_fast = 0, counter_slower = 0, counter_vert = 0, counter_hor = 0;
+    reg [31:0] counter_slow = 0, counter_fast = 0, counter_slower = 0, counter_vert = 0, counter_hor = 0, stop_count = 0;
     
     slow_clock c1 (.CLOCK(clock), .m(32'd49999), .SLOW_CLOCK(clk_1khz));
     
@@ -46,7 +46,13 @@ module task_d(input clock, start, up, left, right, speed_sw, [12:0] x, y,
                 if (up == 1) button_state <= 2'b01;
                 else if (left == 1) button_state <= 2'b10;
                 else if (right == 1) button_state <= 2'b11;
-                if (start == 1 && stopped == 1) begin
+                
+                if (stopped) begin
+                    stop_count <= stop_count == 500 ? 500 : stop_count + 1;
+                end
+                else stop_count <= 0;
+                
+                if (start == 1 && stop_count > 200) begin
                     reset <= 1;
                     button_state <= 0;
                 end
