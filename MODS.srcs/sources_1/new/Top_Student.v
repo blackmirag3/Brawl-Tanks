@@ -37,6 +37,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, output [
                         .vccen(JC[6]),
                         .pmoden(JC[7]));
                         
-    task_d d_unit (.clock(clk), .start(btnC), .up(btnU), .left(btnL), .right(btnR), .speed_sw(sw[0]), .x(x), .y(y), .oled_data(oled_data));
-                        
+    //task_d d_unit (.clock(clk), .start(btnC), .up(btnU), .left(btnL), .right(btnR), .speed_sw(sw[0]), .x(x), .y(y), .oled_data(oled_data));
+    taskB b_unit(.clk(clk), .sw0(sw[0]), .x(x), .y(y), .oled_data(oled_data), .btnC(btnC), .btnR(btnR), .btnL(btnL));
+                
 endmodule
