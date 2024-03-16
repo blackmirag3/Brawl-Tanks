@@ -26,27 +26,19 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
     reg [15:0] green = 16'b00000_111111_00000;
     reg [15:0] orange = 16'b11111_101010_00000;
     reg [15:0] red = 16'b11111_000000_00000;
-    reg started_one = 0, started_two = 0, isPressed = 0;
+    reg started_one = 0, started_two = 0, has_started_two = 0;
     reg [1:0] shape = 2'b00;
     reg [31:0] counter_one = 0, counter_two = 0;
     
     slow_clock c0 (.CLOCK(clock), .m(32'd49999), .SLOW_CLOCK(clk_1Khz));
     slow_clock c1 (.CLOCK(clock), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
     debouncer d0(.clock(clk_1Mhz), .button(btnD), .state(btnD_debounce));
-    debouncer d1(.clock(clk_1Mhz), .button(btnC), .state(btnC_debounce));
     
     always @ (posedge clk_1Khz) begin
         if (started_one == 1) counter_one <= (counter_one == 5500) ? 0 : counter_one + 1;
         
-        if (btnD_debounce == 1) begin
-            counter_two <= counter_two + 1;
-            isPressed <= 1;
-            end
-        else begin
-            if (counter_two < 50 && isPressed) started_two <= 1;
-            isPressed <= 0;
-            counter_two <= 0;
-        end
+        if (btnD_debounce == 1) started_two = 1;
+        else has_started_two = 0;
     end
     
     always @ (posedge clock )begin //updates every millisecond
@@ -85,7 +77,7 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
                 (y >= 43 && y < 46 && x >= 19 && x < 75))) oled_data <= green;
             //A3 part 6 sequence
             
-            if (started_two == 1) begin
+            if (started_two == 1 && has_started_two == 0) begin
                 if (shape == 0) begin
                     shape = 2'b01;
                 end
@@ -113,7 +105,7 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
                     else oled_data <= 0;
                     shape = 2'b01;
                 end
-                started_two = 0;
+                //started_two = 0;
             end
         end
     end
