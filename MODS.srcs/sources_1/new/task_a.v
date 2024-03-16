@@ -35,10 +35,20 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
     debouncer d0(.clock(clk_1Mhz), .button(btnD), .state(btnD_debounce));
     
     always @ (posedge clk_1Khz) begin
+        //border counter
         if (started_one == 1) counter_one <= (counter_one == 5500) ? 0 : counter_one + 1;
         
+        //shapes counter
         if (btnD_debounce == 1) started_two = 1;
         else has_started_two = 0;
+        
+        //shape logic
+        if (started_two == 1 && has_started_two == 0) begin
+            if (shape == 0) shape = 2'b01;
+            else if (shape == 2'b01) shape = 2'b10;
+            else if (shape == 2'b10) shape = 2'b11;
+            else if (shape == 2'b11)shape = 2'b01;
+        end
     end
     
     always @ (posedge clock )begin //updates every millisecond
@@ -75,39 +85,23 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
                 (x >= 75 && x < 78 && y >= 18 && y < 46) ||
                 (y >= 18 && y < 21 && x >= 19 && x < 75) ||
                 (y >= 43 && y < 46 && x >= 19 && x < 75))) oled_data <= green;
-            //A3 part 6 sequence
-            
-            if (started_two == 1 && has_started_two == 0) begin
-                if (shape == 0) begin
-                    shape = 2'b01;
-                end
-                else if (shape == 2'b01) begin
-                    //create red square
-                    if (x >= 45 && x < 52 && y >= 29 && y < 36) oled_data <= red;
-                    else oled_data <= 0;
-                    shape = 2'b10;
-                end
-                else if (shape == 2'b10) begin
-                    //orange circle
-                    if ((x >= 47 && x < 50 && (y == 29 || y == 35)) || 
-                    (x >= 46 && x <51 && (y == 30 || y == 34)) || 
-                    (x >= 45 && x < 52 && (y >= 31 && y < 34))) oled_data <= orange;
-                    else oled_data <= 0;
-                    shape = 2'b11;
-                end
-                else if (shape == 2'b11) begin
-                    //green triangle
-                    if ((x >= 45 && x < 52 && y == 29) ||
-                    (x >= 44 && x < 51 && y == 30) ||
-                    (x >= 45 && x < 50 && y == 31) ||
-                    (x >= 46 && x < 49 && y == 32) || 
-                    (x == 47 && y == 33)) oled_data <= red;
-                    else oled_data <= 0;
-                    shape = 2'b01;
-                end
-                //started_two = 0;
+                
+            //A3 part 6 sequence   
+            if (shape == 2'b01) begin
+                        if (x >= 45 && x < 52 && y >= 29 && y < 36) oled_data <= red;
+                    end
+            if (shape == 2'b10) begin
+                if ((x >= 47 && x < 50 && (y == 29 || y == 35)) || 
+                (x >= 46 && x <51 && (y == 30 || y == 34)) || 
+                (x >= 45 && x < 52 && (y >= 31 && y < 34))) oled_data <= orange;
+            end
+            if (shape == 2'b11) begin
+                if ((x >= 45 && x < 52 && y == 29) ||
+                (x >= 44 && x < 51 && y == 30) ||
+                (x >= 45 && x < 50 && y == 31) ||
+                (x >= 46 && x < 49 && y == 32) || 
+                (x == 47 && y == 33)) oled_data <= red;
             end
         end
     end
-endmodule
 
