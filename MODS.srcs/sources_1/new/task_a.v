@@ -88,8 +88,8 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
                 
             //A3 part 6 sequence   
             if (shape == 2'b01) begin
-                        if (x >= 45 && x < 52 && y >= 29 && y < 36) oled_data <= red;
-                    end
+                if (x >= 45 && x < 52 && y >= 29 && y < 36) oled_data <= red;
+            end
             if (shape == 2'b10) begin
                 if ((x >= 47 && x < 50 && (y == 29 || y == 35)) || 
                 (x >= 46 && x <51 && (y == 30 || y == 34)) || 
@@ -100,7 +100,7 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
                 (x >= 44 && x < 51 && y == 30) ||
                 (x >= 45 && x < 50 && y == 31) ||
                 (x >= 46 && x < 49 && y == 32) || 
-                (x == 47 && y == 33)) oled_data <= red;
+                (x == 47 && y == 33)) oled_data <= green;
             end
         end
     end
