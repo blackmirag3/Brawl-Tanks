@@ -22,7 +22,7 @@
 
 module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data = 0);
 
-    wire clk_1Mhz, btnC_debounce, btnD_debounce;
+    wire clk_1Khz, clk_25Mhz, btnC_debounce, btnD_debounce;
     reg [15:0] green = 16'b00000_111111_00000;
     reg [15:0] orange = 16'b11111_101010_00000;
     reg [15:0] red = 16'b11111_000000_00000;
@@ -32,7 +32,7 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
     
     slow_clock c0 (.CLOCK(clock), .m(32'd49999), .SLOW_CLOCK(clk_1Khz));
     slow_clock c1 (.CLOCK(clock), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
-    debouncer d0(.clock(clk_1Mhz), .button(btnD), .state(btnD_debounce));
+    debouncer d0(.clock(clk_1Khz), .button(btnD), .state(btnD_debounce));
     
     always @ (posedge clk_1Khz) begin
         //border counter
