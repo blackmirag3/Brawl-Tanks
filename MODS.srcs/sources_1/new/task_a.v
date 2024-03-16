@@ -40,10 +40,13 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
         
         //shapes counter
         if (btnD_debounce == 1) started_two = 1;
-        else has_started_two = 0;
+        else begin
+            has_started_two <= 0;
+            started_two <= 0;
+        end
         
         //shape logic
-        if (started_two == 1 && has_started_two == 0) begin
+        if (started_one == 1 && started_two == 1 && has_started_two == 0) begin
             has_started_two <= 1;
             if (shape == 0) shape = 2'b01;
             else if (shape == 2'b01) shape = 2'b10;
@@ -91,12 +94,12 @@ module task_a(input clock, btnC, btnD, [12:0] x, y , output reg [15:0] oled_data
             if (shape == 2'b01) begin
                 if (x >= 45 && x < 52 && y >= 29 && y < 36) oled_data <= red;
             end
-            if (shape == 2'b10) begin
+            else if (shape == 2'b10) begin
                 if ((x >= 47 && x < 50 && (y == 29 || y == 35)) || 
                 (x >= 46 && x <51 && (y == 30 || y == 34)) || 
                 (x >= 45 && x < 52 && (y >= 31 && y < 34))) oled_data <= orange;
             end
-            if (shape == 2'b11) begin
+            else if (shape == 2'b11) begin
                 if ((x >= 45 && x < 52 && y == 29) ||
                 (x >= 44 && x < 51 && y == 30) ||
                 (x >= 45 && x < 50 && y == 31) ||
