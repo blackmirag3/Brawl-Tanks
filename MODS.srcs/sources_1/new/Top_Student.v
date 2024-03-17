@@ -111,7 +111,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
             3'd0 : begin
                 seg <= 7'b1111111;
                 an <= 4'b1111;
-                oled_data <= 16'hffff;
+                oled_data <= 0;
                 paint_rst <= 1;
                 if (sw[1] == 1) demo_state <= 3'd1;
                 if (sw[2] == 1) demo_state <= 3'd2;
