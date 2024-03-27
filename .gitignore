@@ -37,7 +37,7 @@
 *.hw
 *.ip_user_files
 # remove if causing issues
-# *.runs
+*.runs
 # *.sim
 
 ### IP synth

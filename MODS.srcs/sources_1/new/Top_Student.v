@@ -25,17 +25,6 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
     wire [3:0] zpos;
     wire left, middle, right, m_event;
     
-    reg [2:0] demo_state = 0;
-    reg trigger_a = 0, trigger_b = 0, trigger_d = 0, trigger_grp = 0;
-    wire a_running, b_running, d_running, grp_running;
-    wire [15:0] a_oled, b_oled, d_oled, grp_oled;
-    
-    wire [6:0] paint_seg, task_seg;
-    wire [3:0] task_an;
-    wire task_dp, grp_success;
-    reg paint_rst = 1;
-    reg [15:0] green_success = 16'b00000_111111_00000;
-    
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
     
@@ -78,87 +67,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
                         .ps2_clk(PS2Clk),
                         .ps2_data(PS2Data));
                         
-    paint paint_unit (.clk_100M(clk),
-                        .clk_25M(clk_25Mhz),
-                        .clk_12p5M(clk_12p5Mhz),
-                        .clk_6p25M(clk_6p25Mhz),
-                        .slow_clk(slow_clk),
-                        .mouse_l(left),
-                        .reset(paint_rst),
-                        .enable(1),
-                        .mouse_x(xpos),
-                        .mouse_y(ypos),
-                        .pixel_index(pixel_index),
-                        .led(),
-                        .seg(paint_seg),
-                        .colour_chooser(grp_oled));
-          
-    task_a a_unit (.clock(clk), .btnC(btnC), .btnD(btnD), .x(x), .y(y), .begin_sw(sw[1]), .trigger(trigger_a),
-                    .oled_data(a_oled), .is_running(a_running));
-               
-    taskB b_unit (.clk(clk), .sw0(sw[0]), .x(x), .y(y), .oled_data(b_oled), .btnC(btnC), .btnR(btnR), .btnL(btnL),
-                    .begin_sw(sw[2]), .trigger(trigger_b), .is_running(b_running));
-                        
-    task_d d_unit (.clock(clk), .start(btnC), .up(btnU), .left(btnL), .right(btnR), .speed_sw(sw[0]), .x(x), .y(y), 
-                    .begin_sw(sw[4]), .trigger(trigger_d), .oled_data(d_oled), .is_running(d_running));
                     
-    grp_task grp_unit (.clk(clk), .btnC(btnC), .sw(sw[15:13]), .paint_seg(paint_seg), .trigger(trigger_grp),
-                        .dp(task_dp), .seg(task_seg), .an(task_an), .success(grp_success));
-                    
-    always @ (posedge clk_12p5Mhz)
-    begin
-        case (demo_state)
-            3'd0 : begin
-                seg <= 7'b1111111;
-                an <= 4'b1111;
-                oled_data <= 0;
-                paint_rst <= 1;
-                if (sw[1] == 1) demo_state <= 3'd1;
-                if (sw[2] == 1) demo_state <= 3'd2;
-                if (sw[4] == 1) demo_state <= 3'd3;
-                if (sw[5] == 1) demo_state <= 3'd4;
-            end
-            3'd1 : begin
-                oled_data <= a_oled;
-                trigger_a <= 1;
-                if (trigger_a == 1 && a_running == 0) begin
-                    trigger_a <= 0;
-                    demo_state <= 0;
-                end
-            end
-            3'd2 : begin
-                oled_data <= b_oled;
-                trigger_b <= 1;
-                if (trigger_b == 1 && b_running == 0) begin
-                    trigger_b <= 0;
-                    demo_state <= 0;
-                end
-            end
-            3'd3 : begin
-                oled_data <= d_oled;
-                trigger_d <= 1;
-                if (trigger_d == 1 && d_running == 0) begin
-                    trigger_d <= 0;
-                    demo_state <= 0;
-                end
-            end
-            3'd4 : begin
-                paint_rst <= right;
-                oled_data <= grp_oled;
-                trigger_grp <= 1;
-                if (trigger_grp == 1 && sw[5] == 0) begin
-                    trigger_grp <= 0;
-                    demo_state <= 0;
-                end
-                
-                an <= task_an;
-                seg <= task_seg;
-                dp <= task_dp;
-                if (grp_success == 1) begin
-                    oled_data <= green_success;
-                end
-            end
-        endcase
-    end
+    
                         
 endmodule
