@@ -11,10 +11,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, 
+module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, RX,
                     inout PS2Clk, PS2Data,
                     output [7:0] JC, [15:0] led, 
-                    output reg [6:0] seg = 7'b1111111, output reg [3:0] an, output reg dp = 1);
+                    output reg [6:0] seg = 7'b1111111, output reg [3:0] an, output reg dp = 1,
+                    output TX);
     
     wire clk_6p25Mhz, clk_12p5Mhz, clk_25Mhz, slow_clk;
     wire fb, send_pixel, sample_pixel;
@@ -28,7 +29,15 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
     
-    assign led[3:0] = sw[4:1];
+    wire RX_DONE, TX_START, TX_BIT;
+    wire [15:0] camera, user_pos_data, opp_pos_data;
+    
+//    assign TX = TRANSMITTING ? TX_BIT : 1;
+    
+    transmitter t0 (.clk(clk), .START(TX_START), .transmit_data(user_pos_data), .TX(TX));
+    receiver r0 (.clk(clk), .RX(RX), .RX_DONE(RX_DONE), .received(opp_pos_data));
+    temp_tank tank (.clk(clk), .RX_DONE(RX_DONE), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR),
+                    .opp_tank(opp_pos_data), .x(x), .y(y), .oled_cam(camera), .new_user_pos(user_pos_data), .TX_START(TX_START));
     
     slow_clock c0 (.CLOCK(clk), .m(32'd7), .SLOW_CLOCK(clk_6p25Mhz));
     slow_clock c1 (.CLOCK(clk), .m(32'd3), .SLOW_CLOCK(clk_12p5Mhz));
@@ -66,8 +75,10 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
                         .new_event(m_event),
                         .ps2_clk(PS2Clk),
                         .ps2_data(PS2Data));
-                        
-                    
-    
+                                      
+    always @ (posedge clk)
+    begin
+        oled_data <= camera;
+    end
                         
 endmodule
