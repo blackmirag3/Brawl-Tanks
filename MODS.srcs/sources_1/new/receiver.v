@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module receiver (input clk, RX, output reg RX_DONE = 1, reg [15:0] received = 0);
+module receiver (input clk, RECEIVE_BIT, output reg RX_DONE = 1, reg [15:0] received = 0);
 
     wire clk_500khz;
     reg [15:0] buffer = 0;
@@ -30,14 +30,15 @@ module receiver (input clk, RX, output reg RX_DONE = 1, reg [15:0] received = 0)
 
     always @ (posedge clk_500khz)
     begin
-        if (RX == 0 && COUNTER == 0) begin // initialize receiver
+        if (RECEIVE_BIT == 0 && COUNTER == 0) begin // initialize receiver
             COUNTER <= COUNTER + 1;
             RX_DONE <= 0;
         end
         if (COUNTER > 0 && COUNTER <= 16) begin // receiving data
-            received[15:0] <= {RX, received[15:1]};
+            COUNTER <= COUNTER + 1;
+            received[15:0] <= {RECEIVE_BIT, received[15:1]};
         end
-        if (COUNTER > 16 && RX == 1) begin // finish receiving
+        if (COUNTER > 16 && RECEIVE_BIT == 1) begin // finish receiving
             COUNTER <= 0;
             RX_DONE <= 1;
         end

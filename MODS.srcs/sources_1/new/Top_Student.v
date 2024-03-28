@@ -11,11 +11,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, RX,
+module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, RX,
                     inout PS2Clk, PS2Data,
-                    output [7:0] JC, [15:0] led, 
+                    output [7:0] JC, reg [15:0] led, 
                     output reg [6:0] seg = 7'b1111111, output reg [3:0] an, output reg dp = 1,
                     output TX);
+    
+    reg [31:0] test = 0;
     
     wire clk_6p25Mhz, clk_12p5Mhz, clk_25Mhz, slow_clk;
     wire fb, send_pixel, sample_pixel;
@@ -31,11 +33,16 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, RX,
     
     wire RX_DONE, TX_START, TX_BIT;
     wire [15:0] camera, user_pos_data, opp_pos_data;
+    wire [15:0] ready_screen;
     
+    ready_check (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen));
+    
+//    assign led[7] = ~RX_DONE;
+//    assign led[5] = TX_START;
 //    assign TX = TRANSMITTING ? TX_BIT : 1;
     
-    transmitter t0 (.clk(clk), .START(TX_START), .transmit_data(user_pos_data), .TX(TX));
-    receiver r0 (.clk(clk), .RX(RX), .RX_DONE(RX_DONE), .received(opp_pos_data));
+    transmitter t0 (.clk(clk), .START(TX_START), .transmit_data(user_pos_data), .TRANSMIT_BIT(TX));
+    receiver r0 (.clk(clk), .RECEIVE_BIT(RX), .RX_DONE(RX_DONE), .received(opp_pos_data));
     temp_tank tank (.clk(clk), .RX_DONE(RX_DONE), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR),
                     .opp_tank(opp_pos_data), .x(x), .y(y), .oled_cam(camera), .new_user_pos(user_pos_data), .TX_START(TX_START));
     
@@ -78,7 +85,15 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, RX,
                                       
     always @ (posedge clk)
     begin
-        oled_data <= camera;
+        oled_data <= ready_screen;
+        
+        if (RX_DONE == 0) begin
+            led[7] <= 1;
+        end
+        if (led[7] == 1) begin
+            test <= test == 99999 ? 0 : test + 1;
+            led[7] <= test == 99999 ? 0 : 1;
+        end
     end
                         
 endmodule
