@@ -20,11 +20,12 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR,
-                input [15:0] opp_tank, [12:0] x, [12:0] y,
-                output reg [15:0] oled_cam, reg [15:0] new_user_pos, output reg TX_START = 0);
+module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR, btnC, GAME_START,
+                input [15:0] received_data, [12:0] x, [12:0] y,
+                output reg [15:0] oled_cam, reg [15:0] to_transmit, output reg TX_START = 0, 
+                output reg USER_READY = 0, OPP_READY = 0);
 
-    wire clk_25Mhz, clk_30hz, clk_100khz;
+    wire clk_25Mhz, clk_30hz;
     
     reg WAIT = 0;
     reg [31:0] SPEED_COUNT = 0;
@@ -40,7 +41,6 @@ module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR,
 
     slow_clock c0 (.CLOCK(clk), .m(32'd1666666), .SLOW_CLOCK(clk_30hz));
     slow_clock c1 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
-    slow_clock c2 (.CLOCK(clk), .m(32'd499), .SLOW_CLOCK(clk_100khz));
     
     check_movement u0 (.user_x_min(user_x_min), .user_x_max(user_x_max), .user_y_min(user_y_min), .user_y_max(user_y_max),
                         .opp_x_min(opp_x_min), .opp_x_max(opp_x_max), .opp_y_min(opp_y_min), .opp_y_max(opp_y_max), 
@@ -49,19 +49,28 @@ module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR,
     always @ (posedge clk_30hz)
     begin
         TX_START <= 0;
-        
-        user_x_min = user_x_min + (btnR * can_right) - (btnL * can_left);
-        user_x_max = user_x_max + (btnR * can_right) - (btnL * can_left);
-        user_y_min = user_y_min + (btnD * can_down) - (btnU * can_up);
-        user_y_max = user_y_max + (btnD * can_down) - (btnU * can_up);
-
-        // collision with opp tank
-        
-        // 16 - bit transfer data. data[15:8] = user y max pos, data[7:0] = user x max pos 
-        // with respect to the user's coordinates
-        new_user_pos <= {user_y_max[7:0], user_x_max[7:0]};
+        if (GAME_START == 1) begin
             
-        if (btnR || btnL || btnU || btnD) TX_START <= 1;
+            user_x_min = user_x_min + (btnR * can_right) - (btnL * can_left);
+            user_x_max = user_x_max + (btnR * can_right) - (btnL * can_left);
+            user_y_min = user_y_min + (btnD * can_down) - (btnU * can_up);
+            user_y_max = user_y_max + (btnD * can_down) - (btnU * can_up);
+    
+            // collision with opp tank
+            
+            // 16 - bit transfer data. data[15:8] = user y max pos, data[7:0] = user x max pos 
+            // with respect to the user's coordinates
+            to_transmit <= {user_y_max[7:0], user_x_max[7:0]};
+                
+            if (btnR || btnL || btnU || btnD) TX_START <= 1;
+        end
+        else begin
+            if (btnC && USER_READY == 0) begin
+                TX_START <= 1;
+                to_transmit <= 16'b1010101010101010;
+                USER_READY <= 1;
+            end
+        end
     end
     
     always @ (posedge clk_25Mhz)
@@ -74,10 +83,15 @@ module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR,
         end
         if (RX_DONE == 1 && WAIT == 1) begin
             WAIT <= 0;
-            opp_x_min <= 95 - opp_tank[7:0];
-            opp_y_min <= 63 - opp_tank[15:8];
-            opp_x_max <= opp_x_min + 5;
-            opp_y_max <= opp_y_min + 5;
+            if (GAME_START == 1) begin
+                opp_x_min <= 95 - received_data[7:0];
+                opp_y_min <= 63 - received_data[15:8];
+                opp_x_max <= opp_x_min + 5;
+                opp_y_max <= opp_y_min + 5;
+            end
+            else begin
+                OPP_READY <= received_data == 16'b1010101010101010 ? 1 : 0;
+            end
         end
         
         if (x >= user_x_min && x <= user_x_max && y >= user_y_min && y <= user_y_max) begin

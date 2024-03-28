@@ -32,19 +32,23 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, RX,
     assign y = pixel_index / 96;
     
     wire RX_DONE, TX_START, TX_BIT;
-    wire [15:0] camera, user_pos_data, opp_pos_data;
+    wire [15:0] camera, user_data, opp_data;
     wire [15:0] ready_screen;
     
-    ready_check (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen));
+    wire GAME_START, USER_READY, OPP_READY;
+    
+    game_state (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen),
+                .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START));
     
 //    assign led[7] = ~RX_DONE;
 //    assign led[5] = TX_START;
 //    assign TX = TRANSMITTING ? TX_BIT : 1;
     
-    transmitter t0 (.clk(clk), .START(TX_START), .transmit_data(user_pos_data), .TRANSMIT_BIT(TX));
-    receiver r0 (.clk(clk), .RECEIVE_BIT(RX), .RX_DONE(RX_DONE), .received(opp_pos_data));
-    temp_tank tank (.clk(clk), .RX_DONE(RX_DONE), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR),
-                    .opp_tank(opp_pos_data), .x(x), .y(y), .oled_cam(camera), .new_user_pos(user_pos_data), .TX_START(TX_START));
+    transmitter t0 (.clk(clk), .START(TX_START), .transmit_data(user_data), .TRANSMIT_BIT(TX));
+    receiver r0 (.clk(clk), .RECEIVE_BIT(RX), .RX_DONE(RX_DONE), .received(opp_data));
+    temp_tank tank (.clk(clk), .RX_DONE(RX_DONE), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .btnC(btnC),
+                    .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY),
+                    .received_data(opp_data), .x(x), .y(y), .oled_cam(camera), .to_transmit(user_data), .TX_START(TX_START));
     
     slow_clock c0 (.CLOCK(clk), .m(32'd7), .SLOW_CLOCK(clk_6p25Mhz));
     slow_clock c1 (.CLOCK(clk), .m(32'd3), .SLOW_CLOCK(clk_12p5Mhz));
@@ -85,7 +89,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, RX,
                                       
     always @ (posedge clk)
     begin
-        oled_data <= ready_screen;
+        oled_data <= GAME_START == 1 ? camera : ready_screen;
         
         if (RX_DONE == 0) begin
             led[7] <= 1;
