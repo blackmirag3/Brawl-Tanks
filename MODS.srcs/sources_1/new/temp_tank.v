@@ -20,18 +20,20 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR, btnC, GAME_START,
+module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR, btnC, GAME_START, GAME_END,
                 input [15:0] received_data, [12:0] x, [12:0] y,
                 output reg [15:0] oled_cam, reg [15:0] to_transmit, output reg TX_START = 0, 
-                output reg USER_READY = 0, OPP_READY = 0);
+                output reg USER_READY = 0, OPP_READY = 0, NEW_GAME = 1);
 
     wire clk_25Mhz, clk_30hz;
     
     reg WAIT = 0;
+//    reg reset_state = 0;
     reg [31:0] SPEED_COUNT = 0;
 //    reg signed [2:0] dx = 0, dy = 0;
     
     reg [12:0] user_x_min = 45, user_x_max = 50, user_y_min = 58, user_y_max = 63;
+    reg [12:0] init_x_min = 45, init_x_max = 50, init_y_min = 58, init_y_max = 63;
     reg [12:0] opp_x_min = 45, opp_x_max = 50, opp_y_min = 0, opp_y_max = 5;
     reg [12:0] x_min = 0, x_max = 95, y_min = 0, y_max = 63;
     wire can_left, can_right, can_down, can_up;
@@ -49,7 +51,9 @@ module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR, btnC, GAME_START,
     always @ (posedge clk_30hz)
     begin
         TX_START <= 0;
-        if (GAME_START == 1) begin
+        if (GAME_START == 1 && GAME_END == 0) begin
+            
+            NEW_GAME <= 0;
             
             user_x_min = user_x_min + (btnR * can_right) - (btnL * can_left);
             user_x_max = user_x_max + (btnR * can_right) - (btnL * can_left);
@@ -64,11 +68,28 @@ module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR, btnC, GAME_START,
                 
             if (btnR || btnL || btnU || btnD) TX_START <= 1;
         end
+        else if (GAME_END == 1 && USER_READY == 1) begin
+        
+//            reset_state <= 1;
+            USER_READY <= 0;
+            
+            user_x_min = init_x_min;
+            user_x_max = init_x_max;
+            user_y_min = init_y_min;
+            user_y_max = init_y_max;
+            
+            to_transmit <= {user_y_max[7:0], user_x_max[7:0]};
+            TX_START <= 1;
+            
+        end
         else begin
             if (btnC && USER_READY == 0) begin
+            
                 TX_START <= 1;
                 to_transmit <= 16'b1010101010101010;
                 USER_READY <= 1;
+                NEW_GAME <= 1;
+                
             end
         end
     end
@@ -102,6 +123,10 @@ module temp_tank (input clk, RX_DONE, btnU, btnD, btnL, btnR, btnC, GAME_START,
         end
         else begin
             oled_cam <= 0;
+        end
+        
+        if (GAME_END == 1) begin
+            OPP_READY <= 0;
         end
         
     end

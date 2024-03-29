@@ -11,11 +11,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, RX,
+module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
                     inout PS2Clk, PS2Data,
                     output [7:0] JC, reg [15:0] led, 
                     output reg [6:0] seg = 7'b1111111, output reg [3:0] an, output reg dp = 1,
-                    output TX);
+                    output [1:0] TX);
     
     reg [31:0] test = 0;
     
@@ -27,28 +27,40 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, RX,
     wire [11:0] xpos, ypos;
     wire [3:0] zpos;
     wire left, middle, right, m_event;
+    wire m_left, m_right;
     
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
     
-    wire RX_DONE, TX_START, TX_BIT;
+    wire RX_DONE_TANK, TX_START_TANK, TX_BIT;
     wire [15:0] camera, user_data, opp_data;
     wire [15:0] ready_screen;
     
-    wire GAME_START, USER_READY, OPP_READY;
+    wire [15:0] user_hit, opp_hit;
+    wire RX_DONE_HP, TX_START_HP, GAME_END, USER_WIN;
+    wire GAME_START, USER_READY, OPP_READY, NEW_GAME;
     
-    game_state (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen),
-                .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START));
+    game_state gs (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen),
+                   .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START),
+                   .GAME_END(GAME_END), .USER_WIN(USER_WIN), .NEW_GAME(NEW_GAME));
     
-//    assign led[7] = ~RX_DONE;
-//    assign led[5] = TX_START;
+    debouncer d0 (.clk(clk), .btn(left), .signal(m_left));
+    debouncer d1 (.clk(clk), .btn(right), .signal(m_right));
+    
+//    assign led[1] = OPP_READY;
+//    assign led[2] = USER_READY;
 //    assign TX = TRANSMITTING ? TX_BIT : 1;
     
-    transmitter t0 (.clk(clk), .START(TX_START), .transmit_data(user_data), .TRANSMIT_BIT(TX));
-    receiver r0 (.clk(clk), .RECEIVE_BIT(RX), .RX_DONE(RX_DONE), .received(opp_data));
-    temp_tank tank (.clk(clk), .RX_DONE(RX_DONE), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .btnC(btnC),
-                    .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY),
-                    .received_data(opp_data), .x(x), .y(y), .oled_cam(camera), .to_transmit(user_data), .TX_START(TX_START));
+    transmitter t_tank (.clk(clk), .START(TX_START_TANK), .transmit_data(user_data), .TRANSMIT_BIT(TX[0]));
+    receiver r_tank (.clk(clk), .RECEIVE_BIT(RX[0]), .RX_DONE(RX_DONE_TANK), .received(opp_data));
+    temp_tank tank (.clk(clk), .RX_DONE(RX_DONE_TANK), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .btnC(btnC),
+                    .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
+                    .received_data(opp_data), .x(x), .y(y), .oled_cam(camera), .to_transmit(user_data), .TX_START(TX_START_TANK));
+    
+    transmitter t_hp (.clk(clk), .START(TX_START_HP), .transmit_data(opp_hit), .TRANSMIT_BIT(TX[1]));
+    receiver r_hp (.clk(clk), .RECEIVE_BIT(RX[1]), .RX_DONE(RX_DONE_HP), .received(user_hit));
+    health_logic hp (.clk(clk), .hit(m_left), .GAME_START(GAME_START), .RX_DONE(RX_DONE_HP), .user_hit(user_hit),
+                     .GAME_END(GAME_END), .USER_WIN(USER_WIN), .TX_START(TX_START_HP), .opp_hit(opp_hit), .NEW_GAME(NEW_GAME));
     
     slow_clock c0 (.CLOCK(clk), .m(32'd7), .SLOW_CLOCK(clk_6p25Mhz));
     slow_clock c1 (.CLOCK(clk), .m(32'd3), .SLOW_CLOCK(clk_12p5Mhz));
@@ -89,15 +101,20 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, RX,
                                       
     always @ (posedge clk)
     begin
-        oled_data <= GAME_START == 1 ? camera : ready_screen;
+        oled_data <= GAME_START == 1 && GAME_END == 0 ? camera : ready_screen;
         
-        if (RX_DONE == 0) begin
+        if (RX_DONE_TANK == 0) begin
             led[7] <= 1;
         end
         if (led[7] == 1) begin
             test <= test == 99999 ? 0 : test + 1;
             led[7] <= test == 99999 ? 0 : 1;
         end
+        
+        led[1] <= OPP_READY;
+        led[2] <= USER_READY;
+        
+        led[13] <= ~GAME_END;
     end
                         
 endmodule
