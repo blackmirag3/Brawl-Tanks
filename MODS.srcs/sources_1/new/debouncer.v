@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 06.03.2024 10:55:50
+// Create Date: 10.03.2024 16:56:34
 // Design Name: 
-// Module Name: de_bounce
+// Module Name: debouncer
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,21 +20,16 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module debouncer(input btn, input clk, output reg signal = 0);
+module debouncer(
+input clock, button,
+output reg state
+    );
+    reg [31:0] counter = 0;
 
-
-    reg [31:0] count = 0;
-    reg [0:0] state = 0;
-    
-    always @ (posedge clk) begin
-        state <= btn ? 1 :
-                 (count < 20000000 && count >= 1) ? 1 : 0;
-                 
-        count <= state ? 
-                 (count < 20000000 ) ? count + 1 : 20000000
-                 : 0;
+    always @ (posedge clock) begin
+        counter <= counter == 200 ? 0 : counter + state;
         
-        signal = state;   
-    
+        if (button == 1) state <= 1;
+        else if (counter >199 ) state <= 0;
     end
 endmodule
