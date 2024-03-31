@@ -40,6 +40,10 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
     wire RX_DONE_HP, TX_START_HP, GAME_END, USER_WIN;
     wire GAME_START, USER_READY, OPP_READY, NEW_GAME;
     
+    wire hit;
+    wire [6:0] led_hp;
+//    wire [31:0] opp_pos_data;
+    
     game_state gs (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen),
                    .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START),
                    .GAME_END(GAME_END), .USER_WIN(USER_WIN), .NEW_GAME(NEW_GAME));
@@ -55,12 +59,14 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
     receiver r_tank (.clk(clk), .RECEIVE_BIT(RX[0]), .RX_DONE(RX_DONE_TANK), .received(opp_data));
     temp_tank tank (.clk(clk), .RX_DONE(RX_DONE_TANK), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .btnC(btnC),
                     .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
-                    .received_data(opp_data), .x(x), .y(y), .oled_cam(camera), .to_transmit(user_data), .TX_START(TX_START_TANK));
+                    .received_data(opp_data), .x(x), .y(y), .oled_cam(camera), .to_transmit(user_data), .TX_START(TX_START_TANK),
+                    .FIRE_TRIGGER(m_left), .hit_opp(hit));
     
     transmitter t_hp (.clk(clk), .START(TX_START_HP), .transmit_data(opp_hit), .TRANSMIT_BIT(TX[1]));
     receiver r_hp (.clk(clk), .RECEIVE_BIT(RX[1]), .RX_DONE(RX_DONE_HP), .received(user_hit));
-    health_logic hp (.clk(clk), .hit(m_left), .GAME_START(GAME_START), .RX_DONE(RX_DONE_HP), .user_hit(user_hit),
-                     .GAME_END(GAME_END), .USER_WIN(USER_WIN), .TX_START(TX_START_HP), .opp_hit(opp_hit), .NEW_GAME(NEW_GAME));
+    health_logic hp (.clk(clk), .hit(hit), .GAME_START(GAME_START), .RX_DONE(RX_DONE_HP), .user_hit(user_hit),
+                     .GAME_END(GAME_END), .USER_WIN(USER_WIN), .TX_START(TX_START_HP), .opp_hit(opp_hit),
+                     .NEW_GAME(NEW_GAME), .hp_bar(led_hp));
     
     slow_clock c0 (.CLOCK(clk), .m(32'd7), .SLOW_CLOCK(clk_6p25Mhz));
     slow_clock c1 (.CLOCK(clk), .m(32'd3), .SLOW_CLOCK(clk_12p5Mhz));
@@ -102,19 +108,21 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
     always @ (posedge clk)
     begin
         oled_data <= GAME_START == 1 && GAME_END == 0 ? camera : ready_screen;
+        led[6:0] <= led_hp;
         
         if (RX_DONE_TANK == 0) begin
-            led[7] <= 1;
+            led[9] <= 1;
         end
-        if (led[7] == 1) begin
+        if (led[9] == 1) begin
             test <= test == 99999 ? 0 : test + 1;
-            led[7] <= test == 99999 ? 0 : 1;
+            led[9] <= test == 99999 ? 0 : 1;
         end
         
-        led[1] <= OPP_READY;
-        led[2] <= USER_READY;
+        led[10] <= OPP_READY;
+        led[11] <= USER_READY;
         
         led[13] <= ~GAME_END;
+        led[15] <= m_left;
     end
                         
 endmodule
