@@ -20,25 +20,73 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module bullet_collision (input clk, dir, [31:0] opp_data, [31:0] bullet_data, output reg hit, reg collided);
+module bullet_collision (input clk, moving, [2:0] dir, [15:0] opp_data, [15:0] bullet_data, output reg hit = 0, reg collided = 0);
 
-    wire [7:0] opp_x_min, opp_x_max, opp_y_min, opp_y_max;
-    assign opp_x_min = opp_data[31:24];
-    assign opp_x_max = opp_data[23:16];
-    assign opp_y_min = opp_data[15:8];
-    assign opp_y_max = opp_data[7:0];
+//    wire [7:0] opp_x_min, opp_x_max, opp_y_min, opp_y_max;
+    wire [7:0] opp_x_cen, opp_y_cen;
+//    assign opp_x_min = opp_data[31:24];
+//    assign opp_x_max = opp_data[23:16];
+    assign opp_x_cen = opp_data[15:8];
+    assign opp_y_cen = opp_data[7:0];
     
-    wire [7:0] b_x_min, b_x_max, b_y_min, b_y_max;
-    assign b_x_min = bullet_data[31:24];
-    assign b_x_max = bullet_data[23:16];
-    assign b_y_min = bullet_data[15:8];
-    assign b_y_max = bullet_data[7:0];
-
+//    wire [7:0] b_x_min, b_x_max, b_y_min, b_y_max;
+    wire [7:0] b_x_cen, b_y_cen;
+//    assign b_x_min = bullet_data[31:24];
+//    assign b_x_max = bullet_data[23:16];
+    assign b_x_cen = bullet_data[15:8];
+    assign b_y_cen = bullet_data[7:0];
+    
+    wire up_hit, right_hit, down_hit, left_hit, up_right, down_right, down_left, up_left;
+    
+    assign up_hit = (b_y_cen - opp_y_cen <= 6) && (opp_x_cen - b_x_cen <= 5 || b_x_cen - opp_x_cen <= 5);
+    assign right_hit = (opp_x_cen - b_x_cen <= 6) && (opp_y_cen - b_y_cen <= 5 || b_y_cen - opp_y_cen <= 5);
+    assign down_hit = (opp_y_cen - b_y_cen <= 6) && (opp_x_cen - b_x_cen <= 5 || b_x_cen - opp_x_cen <= 5);
+    assign left_hit = (b_x_cen - opp_x_cen <= 6) && (opp_y_cen - b_y_cen <= 5 || b_y_cen - opp_y_cen <= 5);
+    assign up_right = up_hit || right_hit;
+    assign down_right = down_hit || right_hit;
+    assign down_left = down_hit || left_hit;
+    assign up_left = up_hit || left_hit;
+    
     always @ (posedge clk)
     begin
-        if (dir == 1) begin
-            hit <= ((opp_y_max - b_y_min <= 1) && (opp_x_min - b_x_min <= 4 || b_x_min - opp_x_min <= 4));
-            collided <= (hit || (b_y_min == 0));
+        if (moving == 1) begin
+            if (dir == 0) begin // up
+                hit <= up_hit;
+                collided <= (up_hit || (b_y_cen - 2 == 0));
+            end
+            if (dir == 1) begin // up-right
+                hit <= up_right;
+                collided <= (up_right || b_y_cen - 2 == 0 || b_x_cen + 2 == 95);
+            end
+            if (dir == 2) begin // right
+                hit <= right_hit;
+                collided <= (right_hit || b_x_cen + 2 == 95);
+            end
+            if (dir == 3) begin // down-right
+                hit <= down_right;
+                collided <= (down_right || b_y_cen + 2 == 63 || b_x_cen + 2 == 95);
+            end
+            if (dir == 4) begin // down
+                hit <= down_hit;
+                collided <= (down_hit || b_y_cen + 2 == 63);
+            end
+            if (dir == 5) begin // down-left
+                hit <= down_left;
+                collided <= (down_left || b_y_cen + 2 == 63 || b_x_cen - 2 == 0);
+            end
+            if (dir == 6) begin // left
+                hit <= left_hit;
+                collided <= (left_hit || b_x_cen - 2 == 0);
+            end
+            if (dir == 7) begin // up-left
+                hit <= up_left;
+                collided <= (up_left || b_y_cen - 2 == 0 || b_x_cen - 2 == 0);
+            end
+        end
+        
+        if (moving == 0) begin
+            hit <= 0;
+            collided <= 0;
         end
     end
 

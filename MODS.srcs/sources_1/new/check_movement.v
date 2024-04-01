@@ -20,24 +20,24 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module check_movement (input [7:0] user_x_min, user_x_max, user_y_min, user_y_max,
-                        input [7:0] opp_x_min, opp_x_max, opp_y_min, opp_y_max, 
+module check_movement (input [7:0] user_x_cen, user_y_cen,
+                        input [7:0] opp_x_cen, opp_y_cen, 
                         output can_up, can_down, can_left, can_right);
                         
     reg [7:0] x_min = 0, x_max = 95, y_min = 0, y_max = 63;
     
     // check whether user tank is right below or right above opp tank
     // check whether user tank and opp tank are on the same horizontal level i.e. abs(user x - opp x) <= 5
-    assign can_up = ((user_y_min - opp_y_max == 1) && (user_x_min - opp_x_min <= 5 || opp_x_min - user_x_min <= 5))
-                    || (user_y_min == y_min) ? 0 : 1;
-    assign can_down = ((opp_y_min - user_y_max == 1) && (user_x_min - opp_x_min <= 5 || opp_x_min - user_x_min <= 5))
-                    || (user_y_max == y_max) ? 0 : 1;
+    assign can_up = ((user_y_cen - opp_y_cen == 7) && (user_x_cen - opp_x_cen <= 6 || opp_x_cen - user_x_cen <= 6))
+                    || (user_y_cen - 3 == y_min) ? 0 : 1;
+    assign can_down = ((opp_y_cen - user_y_cen == 7) && (user_x_cen - opp_x_cen <= 6 || opp_x_cen - user_x_cen <= 6))
+                    || (user_y_cen + 3 == y_max) ? 0 : 1;
                     
     // check whether user tank is right beside
     // check whether user tank and opp tank are on the same vertical level i.e. abs(user y - opp y) <= 5
-    assign can_right = ((opp_x_min - user_x_max == 1) && (user_y_min - opp_y_min <= 5 || opp_y_min - user_y_min <= 5))
-                    || (user_x_max == x_max) ? 0 : 1;
-    assign can_left = ((user_x_min - opp_x_max == 1) && (user_y_min - opp_y_min <= 5 || opp_y_min - user_y_min <= 5))
-                    || (user_x_min == x_min) ? 0 : 1;
+    assign can_right = ((opp_x_cen - user_x_cen == 7) && (user_y_cen - opp_y_cen <= 6 || opp_y_cen - user_y_cen <= 6))
+                    || (user_x_cen + 3 == x_max) ? 0 : 1;
+    assign can_left = ((user_x_cen - opp_x_cen == 7) && (user_y_cen - opp_y_cen <= 6 || opp_y_cen - user_y_cen <= 6))
+                    || (user_x_cen - 3 == x_min) ? 0 : 1;
                         
 endmodule
