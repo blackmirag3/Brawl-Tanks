@@ -19,21 +19,22 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
+//calculates relative position of object W.R.T player position and player direction
+//calculates whether object is within player FOV (90 degree)
 module fov(
 input clk,
-input reset,
 input [7:0] player_angle, //scaled to 256 degrees from 360 degrees
-input[7:0] player_x, player_y, enemy_x, enemy_y, pillar_x, pillar_y,
-input signed [7:0] object_x,
-input signed [7:0] object_y,
-output reg [7:0] rel_x, rel_y
+input [7:0] player_x, player_y, //enemy_x, enemy_y, pillar_x, pillar_y,
+input [7:0] object_x, object_y,
+output reg [15:0] object_x_relative, object_y_relative
 //output [7:0] enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel
     );
-    reg signed [7:0] trans_x;
-    reg signed [7:0] trans_y;
-    reg signed [7:0] sin_theta;
-    reg signed [7:0] cos_theta;
+    reg signed [15:0] rel_x;
+    reg signed [15:0] rel_y;
+    reg signed [15:0] trans_x;
+    reg signed [15:0] trans_y;
+    reg signed [15:0] sin_theta;
+    reg signed [15:0] cos_theta;
 
     // Sin and Cos LUTs (8-bit signed, scaled -128 to 127 for sin, 0 to 255 for angle)
     reg [7:0] sin_lut[255:0];
@@ -58,7 +59,7 @@ output reg [7:0] rel_x, rel_y
         sin_lut[14] = 43;
         sin_lut[15] = 46;
         sin_lut[16] = 49;
-        sin_lut[17] = 51
+        sin_lut[17] = 51;
         sin_lut[18] = 54;
         sin_lut[19] = 57;
         sin_lut[20] = 60;
@@ -76,7 +77,7 @@ output reg [7:0] rel_x, rel_y
         sin_lut[32] = 90;
         sin_lut[33] = 92;
         sin_lut[34] = 94;
-        sin_lut[35] = 96
+        sin_lut[35] = 96;
         sin_lut[36] = 98;
         sin_lut[37] = 100;
         sin_lut[38] = 102;
@@ -173,8 +174,8 @@ output reg [7:0] rel_x, rel_y
         sin_lut[129] = -3;
         sin_lut[130] = -6;
         sin_lut[131] = -9;
-        sin_lut[132] = -12
-        sin_lut[133] = -16
+        sin_lut[132] = -12;
+        sin_lut[133] = -16;
         sin_lut[134] = -19;
         sin_lut[135] = -22;
         sin_lut[136] = -25;
@@ -556,11 +557,8 @@ output reg [7:0] rel_x, rel_y
         cos_lut[255] = 127;
     end
     
-    always @(posedge clk or posedge reset) begin
-        if (reset) begin
-            rel_x <= 0;
-            rel_y <= 0;
-        end else begin
+    always @(posedge clk) begin
+        begin
             // Translate object position to be relative to player position
             trans_x = object_x - player_x;
             trans_y = object_y - player_y;
@@ -574,6 +572,28 @@ output reg [7:0] rel_x, rel_y
             // The >> 7 operation is to normalize the result of the multiplication
             rel_x <= ((trans_x * cos_theta) - (trans_y * sin_theta)) >>> 7;
             rel_y <= ((trans_x * sin_theta) + (trans_y * cos_theta)) >>> 7;
+            
+            //for 90 degree FOV
+            //-45 deg < arctan( Rx / Ry) < 45 deg
+            //.: -Ry < Rx < Ry, where tan(45 deg) = 1;
+            
+            //object behind player
+            if (rel_y < 0) begin
+                object_y_relative <= 0;
+                object_x_relative <= 0;
+            end
+            
+            //object in front of player, within 90 degree FOV
+            else if (-rel_y < rel_x && rel_x < rel_y) begin
+                object_y_relative <= rel_y;
+                object_x_relative <= rel_x;
+            end
+            
+            //object in front of player, outside 90 degree FOV
+            else begin
+                object_y_relative <= 0;
+                object_x_relative <= 0;
+            end
         end
     end
 endmodule
