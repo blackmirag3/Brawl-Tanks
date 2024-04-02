@@ -21,12 +21,12 @@
 
 //calculates relative position of object W.R.T player position and player direction
 //calculates whether object is within player FOV (90 degree)
-module fov(
+module FOV(
 input clk,
 input [7:0] player_angle, //scaled to 256 degrees from 360 degrees
 input [7:0] player_x, player_y, //enemy_x, enemy_y, pillar_x, pillar_y,
 input [7:0] object_x, object_y,
-output reg [15:0] object_x_relative, object_y_relative
+output [15:0] object_x_relative, object_y_relative
 //output [7:0] enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel
 );
 
@@ -38,8 +38,8 @@ reg signed [15:0] sin_theta;
 reg signed [15:0] cos_theta;
 
 // Sin and Cos LUTs (8-bit signed, scaled -128 to 127 for sin, 0 to 255 for angle)
-reg [7:0] sin_lut[255:0];
-reg [7:0] cos_lut[255:0];
+reg signed  [7:0] sin_lut[255:0];
+reg signed [7:0] cos_lut[255:0];
 
 // Initialize LUTs with precomputed sin and cos values
 initial begin
