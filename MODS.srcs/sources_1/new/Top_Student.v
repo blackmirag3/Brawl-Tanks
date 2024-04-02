@@ -18,21 +18,26 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
     
     wire clk_6p25Mhz, clk_12p5Mhz, clk_25Mhz, slow_clk;
     wire fb, send_pixel, sample_pixel;
-    reg [15:0] oled_data;
+    wire [15:0] oled_data;
     wire [12:0] pixel_index, x, y;
     
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
     
-    //mouse variables
-//    wire [11:0] xpos, ypos;
-//    wire [3:0] zpos;
-//    wire left, middle, right, m_event;
+    wire [11:0] xpos, ypos;
+    wire [3:0] zpos;
+    wire left, middle, right, m_event;
     
     slow_clock c0 (.CLOCK(clk), .m(32'd7), .SLOW_CLOCK(clk_6p25Mhz));
 //    slow_clock c1 (.CLOCK(clk), .m(32'd3), .SLOW_CLOCK(clk_12p5Mhz));
 //    slow_clock c2 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
 //    slow_clock c3 (.CLOCK(clk), .m(32'd49999999), .SLOW_CLOCK(slow_clk));
+
+    wire enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel;
+    FOV enemy(clk, 0, 0, 0, 0, 0, enemy_x_rel, enemy_y_rel);
+    FOV pillar(clk, 0, 0, 0, 0, 0, pillar_x_rel, pillar_y_rel);
+    camera_FPS cam_1(clk, enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel, x, y, oled_data);
+    camera_top cam_2(clk, 0, 0, 0, 0, 0, 0, x, y, oled_data);
     
     Oled_Display unit_oled (.clk(clk_6p25Mhz), 
                         .reset(0), 
@@ -49,20 +54,20 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
                         .vccen(JC[6]),
                         .pmoden(JC[7]));
                         
-//    MouseCtl mouse_unit (.clk(clk),
-//                        .rst(0),
-//                        .value(0),
-//                        .setx(0),
-//                        .sety(0),
-//                        .setmax_x(0),
-//                        .setmax_y(0),
-//                        .xpos(xpos),
-//                        .ypos(ypos),
-//                        .zpos(zpos),
-//                        .left(left),
-//                        .middle(middle),
-//                        .right(right),
-//                        .new_event(m_event),
-//                        .ps2_clk(PS2Clk),
-//                        .ps2_data(PS2Data));         
+    MouseCtl mouse_unit (.clk(clk),
+                        .rst(0),
+                        .value(0),
+                        .setx(0),
+                        .sety(0),
+                        .setmax_x(0),
+                        .setmax_y(0),
+                        .xpos(xpos),
+                        .ypos(ypos),
+                        .zpos(zpos),
+                        .left(left),
+                        .middle(middle),
+                        .right(right),
+                        .new_event(m_event),
+                        .ps2_clk(PS2Clk),
+                        .ps2_data(PS2Data));         
 endmodule
