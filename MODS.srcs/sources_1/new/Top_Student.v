@@ -9,16 +9,14 @@
 //  STUDENT D NAME: Sim Jing Jie Ryan 
 //
 //////////////////////////////////////////////////////////////////////////////////
-
-
 module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, 
                     inout PS2Clk, PS2Data,
                     output [7:0] JC, [15:0] led, 
                     output reg [6:0] seg = 7'b1111111, output reg [3:0] an, output reg dp = 1);
     
-    wire clk_6p25Mhz, clk_12p5Mhz, clk_25Mhz, slow_clk;
+    wire clk_6p25Mhz, clk_12p5Mhz, clk_25Mhz, slow_clk, clk_1000hz;
     wire fb, send_pixel, sample_pixel;
-    reg [15:0] oled_data;
+    wire [15:0] oled_data;
     wire [12:0] pixel_index, x, y;
     
     wire [11:0] xpos, ypos;
@@ -27,12 +25,9 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
     
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
-    
-    assign led[3:0] = sw[4:1];
-    
+        
     slow_clock c0 (.CLOCK(clk), .m(32'd7), .SLOW_CLOCK(clk_6p25Mhz));
     slow_clock c1 (.CLOCK(clk), .m(32'd3), .SLOW_CLOCK(clk_12p5Mhz));
-    slow_clock c2 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
     slow_clock c3 (.CLOCK(clk), .m(32'd49999999), .SLOW_CLOCK(slow_clk));
     
     Oled_Display unit_oled (.clk(clk_6p25Mhz), 
@@ -66,8 +61,50 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
                         .new_event(m_event),
                         .ps2_clk(PS2Clk),
                         .ps2_data(PS2Data));
-                        
-                    
     
+    reg [15:0] green_c = 16'b00000_111111_00000; 
+    reg [15:0] red_c = 16'b11111_000000_00000; 
+    reg [15:0] blue_c = 16'b00000_000000_11111;
+    reg [15:0] white_c = 16'b11111_111111_11111;
+                 
                         
+    wire [3:0] direction;    // clockwise from 12oClock, 1-8 positions
+    wire [2:0] movement; // 0:no movement, 1:forward, 2:backward, 3:left, 4:right
+    slow_clock c2 (.CLOCK(clk), .m(32'd49999), .SLOW_CLOCK(clk_1000hz));
+    slow_clock c4 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
+    wire [12:0] bullet_x, bullet_y, centre_x, centre_y;
+    wire fired;
+    always@(posedge clk)
+    begin
+        if(fired == 1)begin
+            seg[6:0] = 7'b0;
+            an[3:0] = 4'b0101;
+            end
+        if(fired == 0)begin
+            seg[6:0] = 7'b0;
+            an[3:0] = 4'b1111;
+            end
+    end
+    
+    tankdirection tank_direction (.debounce(clk), .state(direction), .btnR(btnR), .btnL(btnL),
+                                  .RightMouse(right), .clk(clk_1000hz), .led(led[15:5]));
+    tankMovement tank_movement_status (.debounce(clk), .btnR(btnR), .btnL(btnL), 
+                                       .btnU(btnU), .btnD(btnD),
+                                       .RightMouse(right), .clk(clk_1000hz),
+                                       .movement(movement), .led(led[4:0]));
+                                       
+    bullet bullet(.clock(clk), .btnC(btnC), .centre_x(centre_x), .centre_y(centre_y),
+                    .direction(direction), 
+                    .fired(fired), 
+                    .bullet_x(bullet_x), .bullet_y(bullet_y));
+                                       
+    tankPosition position(.clock(clk),
+                          .x(x), .y(y), 
+                          .bullet_x(bullet_x), .bullet_y(bullet_y),
+                          .fired(fired),
+                          .direction(direction),
+                          .movement(movement),
+                          .oled_data(oled_data),
+                          .centre_x(centre_x), .centre_y(centre_y));
+                    
 endmodule
