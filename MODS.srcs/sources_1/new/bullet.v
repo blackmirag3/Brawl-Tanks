@@ -36,9 +36,6 @@ module bullet(input clock, btnC,
     
     always @ (posedge clk_1khz)
     begin
-        if(btnC == 0)begin
-            reloaded <= 1;
-            end
         if(btnC == 1 && fired == 0 && reloaded == 1) begin
             case(direction)
             4'b0000 : begin
@@ -137,6 +134,9 @@ module bullet(input clock, btnC,
             fired <= 0;
             counter <= 0;
             end
+        if(btnC == 0)begin
+            reloaded <= 1;
+            end 
     end
 
     

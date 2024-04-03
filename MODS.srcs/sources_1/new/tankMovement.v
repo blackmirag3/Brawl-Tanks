@@ -21,43 +21,36 @@
 
 
 module tankMovement(input btnR, btnL, btnU, btnD, RightMouse, clk, debounce,
-                     output reg [2:0] movement, output reg [4:0] led);
+                     output reg [2:0] movement); 
+                     //output reg [4:0] led
 
     wire isUsedMouse, isUsedL, isUsedR, isUsedD, isUsedU;
     reg isUsed_Mouse, isUsed_L, isUsed_R, isUsed_D, isUsed_U;
 
-// 0:no movement, 1:forward, 2:backward, 3:left, 4:right
-//    debouncer d1 (.btn(btnR), .clk(debounce), .signal(isUsedR));
-//    debouncer d2 (.btn(btnL), .clk(debounce), .signal(isUsedL));
-//    debouncer d3 (.btn(btnD), .clk(debounce), .signal(isUsedD));
-//    debouncer d4 (.btn(btnU), .clk(debounce), .signal(isUsedU));
 
 always @ (posedge clk) begin
     if (btnU == 1 && RightMouse == 0)begin
         movement <= 1;
-        led[1] <= 1;
+        //led[1] <= 1;
     end
     else if (btnD == 1 && RightMouse == 0)begin
         movement <= 2;
-        led[2] <= 1;
+        //led[2] <= 1;
     end
     else if (btnR == 1 && RightMouse == 0)begin
         movement <= 4;
-        led[4] <= 1;
+        //led[4] <= 1;
         end
     else if (btnL == 1 && RightMouse == 0)begin
         movement <= 3;
-        led[3] <= 1;
+        //led[3] <= 1;
         end
     else begin
         movement <= 0;
-        led[0] <= 1;
-        led[4:1] <= 0;
+        //led[0] <= 1;
+        //led[4:1] <= 0;
         end
-//    isUsed_R <= isUsedR;        
-//    isUsed_L <= isUsedL;        
-//    isUsed_U <= isUsedU;        
-//    isUsed_D <= isUsedD;                  
+          
 end              
        
 endmodule

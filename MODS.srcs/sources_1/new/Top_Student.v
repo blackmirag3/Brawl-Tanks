@@ -97,12 +97,12 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
         if(btnC == 1 && isUsed_C == 0 && count == 0)begin
             shoot <= (shoot == 5'b11111) ? 5'b11111 : (shoot << 1) + 1;
             end 
-        if(shoot == 5'b11111 && count != five_seconds)begin
+        else if(shoot == 5'b11111 && count != five_seconds)begin
             count <= count + 1;
             seg[6:0] <= 7'b0000000;
             an[3:0] <= 4'b0000;
             end
-        if(count == five_seconds)begin
+        else if(count == five_seconds)begin
             shoot <= 5'b00000;
             count <= 0;
             seg[6:0] <= 7'b1111111;
