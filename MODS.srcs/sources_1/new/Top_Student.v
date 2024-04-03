@@ -72,35 +72,77 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
     wire [2:0] movement; // 0:no movement, 1:forward, 2:backward, 3:left, 4:right
     slow_clock c2 (.CLOCK(clk), .m(32'd49999), .SLOW_CLOCK(clk_1000hz));
     slow_clock c4 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
-    wire [12:0] bullet_x, bullet_y, centre_x, centre_y;
-    wire fired;
-    always@(posedge clk)
-    begin
-        if(fired == 1)begin
-            seg[6:0] = 7'b0;
-            an[3:0] = 4'b0101;
-            end
-        if(fired == 0)begin
-            seg[6:0] = 7'b0;
-            an[3:0] = 4'b1111;
-            end
-    end
     
     tankdirection tank_direction (.debounce(clk), .state(direction), .btnR(btnR), .btnL(btnL),
-                                  .RightMouse(right), .clk(clk_1000hz), .led(led[15:5]));
+                                  .RightMouse(right), .clk(clk_1000hz)); //led[15:5]
     tankMovement tank_movement_status (.debounce(clk), .btnR(btnR), .btnL(btnL), 
                                        .btnU(btnU), .btnD(btnD),
                                        .RightMouse(right), .clk(clk_1000hz),
-                                       .movement(movement), .led(led[4:0]));
+                                       .movement(movement)); //led[4:0]
+    wire isUsedC;
+    reg isUsed_C;
+    reg [31:0] five_seconds = 32'd5000, count = 0;
+    debouncer debounce_C (.btn(btnC), .clk(clk), .signal(isUsedC));  
+      
+    //x,y of 5 diff bullet
+    wire [12:0] bullet1_x, bullet1_y, bullet2_x, bullet2_y, bullet3_x, bullet3_y, bullet4_x, bullet4_y, bullet5_x, bullet5_y; 
+    
+    //x,y centre of tank
+    wire [12:0] centre_x, centre_y;
+    wire [4:0] fired; //to let screen know that a bullet is still travelling
+    reg [4:0] shoot = 5'b00000; 
+    
+    always@(posedge clk_1000hz)
+    begin
+        if(btnC == 1 && isUsed_C == 0 && count == 0)begin
+            shoot <= (shoot == 5'b11111) ? 5'b11111 : (shoot << 1) + 1;
+            end 
+        if(shoot == 5'b11111 && count != five_seconds)begin
+            count <= count + 1;
+            seg[6:0] <= 7'b0000000;
+            an[3:0] <= 4'b0000;
+            end
+        if(count == five_seconds)begin
+            shoot <= 5'b00000;
+            count <= 0;
+            seg[6:0] <= 7'b1111111;
+            an[3:0] <= 4'b1111;
+            end
+        isUsed_C <= isUsedC;  
+    end                                   
                                        
-    bullet bullet(.clock(clk), .btnC(btnC), .centre_x(centre_x), .centre_y(centre_y),
+    bullet bullet1(.clock(clk), .btnC(shoot[0]), .centre_x(centre_x), .centre_y(centre_y),
                     .direction(direction), 
-                    .fired(fired), 
-                    .bullet_x(bullet_x), .bullet_y(bullet_y));
+                    .fired(fired[0]), 
+                    .bullet_x(bullet1_x), .bullet_y(bullet1_y));
+                    
+    bullet bullet2(.clock(clk), .btnC(shoot[1]), .centre_x(centre_x), .centre_y(centre_y),
+                    .direction(direction), 
+                    .fired(fired[1]), 
+                    .bullet_x(bullet2_x), .bullet_y(bullet2_y));
+                    
+    bullet bullet3(.clock(clk), .btnC(shoot[2]), .centre_x(centre_x), .centre_y(centre_y),
+                    .direction(direction), 
+                    .fired(fired[2]), 
+                    .bullet_x(bullet3_x), .bullet_y(bullet3_y));    
+                    
+    bullet bullet4(.clock(clk), .btnC(shoot[3]), .centre_x(centre_x), .centre_y(centre_y),
+                    .direction(direction), 
+                    .fired(fired[3]), 
+                    .bullet_x(bullet4_x), .bullet_y(bullet4_y));
+                    
+    bullet bullet5(.clock(clk), .btnC(shoot[4]), .centre_x(centre_x), .centre_y(centre_y),
+                    .direction(direction), 
+                    .fired(fired[4]), 
+                    .bullet_x(bullet5_x), .bullet_y(bullet5_y));
                                        
     tankPosition position(.clock(clk),
                           .x(x), .y(y), 
-                          .bullet_x(bullet_x), .bullet_y(bullet_y),
+                          .bullet1_x(bullet1_x), .bullet1_y(bullet1_y),
+                          .bullet2_x(bullet2_x), .bullet2_y(bullet2_y),
+                          .bullet3_x(bullet3_x), .bullet3_y(bullet3_y),
+                          .bullet4_x(bullet4_x), .bullet4_y(bullet4_y),
+                          .bullet5_x(bullet5_x), .bullet5_y(bullet5_y),
                           .fired(fired),
                           .direction(direction),
                           .movement(movement),

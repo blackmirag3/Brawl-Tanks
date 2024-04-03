@@ -21,7 +21,8 @@
 
 
 module tankdirection(input btnR, btnL, RightMouse, clk, debounce,
-                     output reg [3:0] state, output reg [10:0] led);
+                     output reg [3:0] state);
+                     //output reg [10:0] led);
                      
     wire isUsedL, isUsedR;
     reg isUsed_L, isUsed_R;
@@ -29,7 +30,7 @@ module tankdirection(input btnR, btnL, RightMouse, clk, debounce,
     debouncer d2 (.btn(btnL), .clk(debounce), .signal(isUsedL));
     
 always @ (posedge clk) begin
-    led [10:0] <= 0;
+    //led [10:0] <= 0;
     if (btnR == 1 && RightMouse == 1 && isUsed_R == 0)begin
         state <= (state == 7) ? 0 : state + 1;
         end
@@ -37,33 +38,33 @@ always @ (posedge clk) begin
         state <= (state == 0) ? 7 : state - 1;
         end
     
-    case(state)
-    4'd0 :  begin
-        led[10] <= 1;
-        led[9:0] <= 0;
-        end       
-    4'd1 :  begin
-        led[9] <= 1;
-        end  
-    4'd2 :  begin
-        led[8] <= 1;
-        end  
-    4'd3 :  begin
-        led[7] <= 1;
-        end  
-    4'd4 :  begin
-        led[6] <= 1;
-        end  
-    4'd5 :  begin
-        led[5] <= 1;
-        end  
-    4'd6 :  begin
-        led[4] <= 1;
-        end  
-    4'd7 :  begin
-        led[3] <= 1;
-        end
-    endcase
+//    case(state)
+//    4'd0 :  begin
+//        led[10] <= 1;
+//        led[9:0] <= 0;
+//        end       
+//    4'd1 :  begin
+//        led[9] <= 1;
+//        end  
+//    4'd2 :  begin
+//        led[8] <= 1;
+//        end  
+//    4'd3 :  begin
+//        led[7] <= 1;
+//        end  
+//    4'd4 :  begin
+//        led[6] <= 1;
+//        end  
+//    4'd5 :  begin
+//        led[5] <= 1;
+//        end  
+//    4'd6 :  begin
+//        led[4] <= 1;
+//        end  
+//    4'd7 :  begin
+//        led[3] <= 1;
+//        end
+//    endcase
     
     isUsed_R <= isUsedR;        
     isUsed_L <= isUsedL;              

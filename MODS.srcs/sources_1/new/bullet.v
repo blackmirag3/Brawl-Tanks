@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module bullet(input clock, btnC, 
+module bullet(input clock, btnC,
              [12:0] centre_x, centre_y,
              [3:0] direction, 
              output reg fired = 0,
@@ -30,12 +30,16 @@ module bullet(input clock, btnC,
     reg [31:0] counter = 0;
     reg[12:0] max_x = 96, max_y = 96, min_x = 0, min_y = 0;
     reg[3:0] bullet_state = 0;
+    reg reloaded = 1;
     slow_clock cc (.CLOCK(clock), .m(32'd49999), .SLOW_CLOCK(clk_1khz));
 
     
     always @ (posedge clk_1khz)
     begin
-        if(btnC == 1 && fired == 0) begin
+        if(btnC == 0)begin
+            reloaded <= 1;
+            end
+        if(btnC == 1 && fired == 0 && reloaded == 1) begin
             case(direction)
             4'b0000 : begin
                 bullet_x <= centre_x;
@@ -79,8 +83,10 @@ module bullet(input clock, btnC,
                 end
             endcase
             fired <= 1;
+            reloaded <= 0;
         end
-        counter <= (counter == 32'd10) ? 0 : counter + 1;
+        
+        counter <= (counter == 32'd20) ? 0 : counter + 1;
         if(fired == 1 && counter == 0) begin
             case(bullet_state)
             4'b0000 : begin // D position 1 (facing forward)

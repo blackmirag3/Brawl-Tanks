@@ -12,10 +12,12 @@
 
 
 module tankPosition(input clock, 
-             input [12:0] x, y, bullet_x, bullet_y,
+             input [12:0] x, y, 
+             input [12:0] bullet1_x, bullet1_y, bullet2_x, bullet2_y, 
+                          bullet3_x, bullet3_y, bullet4_x, bullet4_y, bullet5_x, bullet5_y,
              input [3:0] direction,
              input [2:0] movement,
-             input fired,
+             input [4:0] fired,
              output reg [15:0] oled_data = 0,
              output reg [12:0] centre_x, centre_y);
     
@@ -29,8 +31,8 @@ module tankPosition(input clock,
     reg [15:0] red_c = 16'b11111_000000_00000; 
     reg [15:0] blue_c = 16'b00000_000000_11111;
     reg [15:0] white_c = 16'b11111_111111_11111;
-    reg grey = 16'b10111_101111_10101;
-
+    reg [15:0] purple_c = 16'b11111_000000_11111;
+    
 
     
     always @ (posedge clk_50hz)
@@ -281,9 +283,25 @@ module tankPosition(input clock,
                 begin
                 oled_data <= white_c;
                 end
-            else if(fired == 1 && x <= bullet_x + 1 && x >= bullet_x - 1 && y <= bullet_y + 1 && y >= bullet_y - 1)
+            else if(fired[0] == 1 && x <= bullet1_x + 1 && x >= bullet1_x - 1 && y <= bullet1_y + 1 && y >= bullet1_y - 1) //shot 1
                 begin
                 oled_data <= green_c;
+                end
+            else if(fired[1] == 1 && x <= bullet2_x + 1 && x >= bullet2_x - 1 && y <= bullet2_y + 1 && y >= bullet2_y - 1) //shot 2
+                begin
+                oled_data <= blue_c;
+                end
+            else if(fired[2] == 1 && x <= bullet3_x + 1 && x >= bullet3_x - 1 && y <= bullet3_y + 1 && y >= bullet3_y - 1) //shot 3
+                begin
+                oled_data <= red_c;
+                end
+            else if(fired[3] == 1 && x <= bullet4_x + 1 && x >= bullet4_x - 1 && y <= bullet4_y + 1 && y >= bullet4_y - 1) //shot 4
+                begin
+                oled_data <= white_c;
+                end
+            else if(fired[4] == 1 && x <= bullet5_x + 1 && x >= bullet5_x - 1 && y <= bullet5_y + 1 && y >= bullet5_y - 1) //shot 5
+                begin
+                oled_data <= purple_c;
                 end
             else
                 begin
@@ -331,9 +349,25 @@ module tankPosition(input clock,
                 begin
                 oled_data <= white_c;
                 end
-            else if(fired == 1 && x <= bullet_x + 1 && x >= bullet_x - 1 && y <= bullet_y + 1 && y >= bullet_y - 1)
+            else if(fired[0] == 1 && x <= bullet1_x + 1 && x >= bullet1_x - 1 && y <= bullet1_y + 1 && y >= bullet1_y - 1) //shot 1
                 begin
                 oled_data <= green_c;
+                end
+            else if(fired[1] == 1 && x <= bullet2_x + 1 && x >= bullet2_x - 1 && y <= bullet2_y + 1 && y >= bullet2_y - 1) //shot 2
+                begin
+                oled_data <= blue_c;
+                end
+            else if(fired[2] == 1 && x <= bullet3_x + 1 && x >= bullet3_x - 1 && y <= bullet3_y + 1 && y >= bullet3_y - 1) //shot 3
+                begin
+                oled_data <= red_c;
+                end
+            else if(fired[3] == 1 && x <= bullet4_x + 1 && x >= bullet4_x - 1 && y <= bullet4_y + 1 && y >= bullet4_y - 1) //shot 4
+                begin
+                oled_data <= white_c;
+                end
+            else if(fired[4] == 1 && x <= bullet5_x + 1 && x >= bullet5_x - 1 && y <= bullet5_y + 1 && y >= bullet5_y - 1) //shot 5
+                begin
+                oled_data <= purple_c;
                 end
             else
                 begin
@@ -370,9 +404,25 @@ module tankPosition(input clock,
                 begin
                 oled_data <= white_c;
                 end
-            else if(fired == 1 && x <= bullet_x + 1 && x >= bullet_x - 1 && y <= bullet_y + 1 && y >= bullet_y - 1)
+            else if(fired[0] == 1 && x <= bullet1_x + 1 && x >= bullet1_x - 1 && y <= bullet1_y + 1 && y >= bullet1_y - 1) //shot 1
                 begin
                 oled_data <= green_c;
+                end
+            else if(fired[1] == 1 && x <= bullet2_x + 1 && x >= bullet2_x - 1 && y <= bullet2_y + 1 && y >= bullet2_y - 1) //shot 2
+                begin
+                oled_data <= blue_c;
+                end
+            else if(fired[2] == 1 && x <= bullet3_x + 1 && x >= bullet3_x - 1 && y <= bullet3_y + 1 && y >= bullet3_y - 1) //shot 3
+                begin
+                oled_data <= red_c;
+                end
+            else if(fired[3] == 1 && x <= bullet4_x + 1 && x >= bullet4_x - 1 && y <= bullet4_y + 1 && y >= bullet4_y - 1) //shot 4
+                begin
+                oled_data <= white_c;
+                end
+            else if(fired[4] == 1 && x <= bullet5_x + 1 && x >= bullet5_x - 1 && y <= bullet5_y + 1 && y >= bullet5_y - 1) //shot 5
+                begin
+                oled_data <= purple_c;
                 end
             else
                 begin
@@ -420,9 +470,25 @@ module tankPosition(input clock,
                 begin
                 oled_data <= white_c;
                 end
-            else if(fired == 1 && x <= bullet_x + 1 && x >= bullet_x - 1 && y <= bullet_y + 1 && y >= bullet_y - 1)
+            else if(fired[0] == 1 && x <= bullet1_x + 1 && x >= bullet1_x - 1 && y <= bullet1_y + 1 && y >= bullet1_y - 1) //shot 1
                 begin
                 oled_data <= green_c;
+                end
+            else if(fired[1] == 1 && x <= bullet2_x + 1 && x >= bullet2_x - 1 && y <= bullet2_y + 1 && y >= bullet2_y - 1) //shot 2
+                begin
+                oled_data <= blue_c;
+                end
+            else if(fired[2] == 1 && x <= bullet3_x + 1 && x >= bullet3_x - 1 && y <= bullet3_y + 1 && y >= bullet3_y - 1) //shot 3
+                begin
+                oled_data <= red_c;
+                end
+            else if(fired[3] == 1 && x <= bullet4_x + 1 && x >= bullet4_x - 1 && y <= bullet4_y + 1 && y >= bullet4_y - 1) //shot 4
+                begin
+                oled_data <= white_c;
+                end
+            else if(fired[4] == 1 && x <= bullet5_x + 1 && x >= bullet5_x - 1 && y <= bullet5_y + 1 && y >= bullet5_y - 1) //shot 5
+                begin
+                oled_data <= purple_c;
                 end
             else
                 begin
@@ -457,9 +523,25 @@ module tankPosition(input clock,
                 begin
                 oled_data <= white_c;
                 end
-            else if(fired == 1 && x <= bullet_x + 1 && x >= bullet_x - 1 && y <= bullet_y + 1 && y >= bullet_y - 1)
+            else if(fired[0] == 1 && x <= bullet1_x + 1 && x >= bullet1_x - 1 && y <= bullet1_y + 1 && y >= bullet1_y - 1) //shot 1
                 begin
                 oled_data <= green_c;
+                end
+            else if(fired[1] == 1 && x <= bullet2_x + 1 && x >= bullet2_x - 1 && y <= bullet2_y + 1 && y >= bullet2_y - 1) //shot 2
+                begin
+                oled_data <= blue_c;
+                end
+            else if(fired[2] == 1 && x <= bullet3_x + 1 && x >= bullet3_x - 1 && y <= bullet3_y + 1 && y >= bullet3_y - 1) //shot 3
+                begin
+                oled_data <= red_c;
+                end
+            else if(fired[3] == 1 && x <= bullet4_x + 1 && x >= bullet4_x - 1 && y <= bullet4_y + 1 && y >= bullet4_y - 1) //shot 4
+                begin
+                oled_data <= white_c;
+                end
+            else if(fired[4] == 1 && x <= bullet5_x + 1 && x >= bullet5_x - 1 && y <= bullet5_y + 1 && y >= bullet5_y - 1) //shot 5
+                begin
+                oled_data <= purple_c;
                 end
             else
                 begin
@@ -507,9 +589,25 @@ module tankPosition(input clock,
                 begin
                 oled_data <= white_c;
                 end
-            else if(fired == 1 && x <= bullet_x + 1 && x >= bullet_x - 1 && y <= bullet_y + 1 && y >= bullet_y - 1)
+            else if(fired[0] == 1 && x <= bullet1_x + 1 && x >= bullet1_x - 1 && y <= bullet1_y + 1 && y >= bullet1_y - 1) //shot 1
                 begin
                 oled_data <= green_c;
+                end
+            else if(fired[1] == 1 && x <= bullet2_x + 1 && x >= bullet2_x - 1 && y <= bullet2_y + 1 && y >= bullet2_y - 1) //shot 2
+                begin
+                oled_data <= blue_c;
+                end
+            else if(fired[2] == 1 && x <= bullet3_x + 1 && x >= bullet3_x - 1 && y <= bullet3_y + 1 && y >= bullet3_y - 1) //shot 3
+                begin
+                oled_data <= red_c;
+                end
+            else if(fired[3] == 1 && x <= bullet4_x + 1 && x >= bullet4_x - 1 && y <= bullet4_y + 1 && y >= bullet4_y - 1) //shot 4
+                begin
+                oled_data <= white_c;
+                end
+            else if(fired[4] == 1 && x <= bullet5_x + 1 && x >= bullet5_x - 1 && y <= bullet5_y + 1 && y >= bullet5_y - 1) //shot 5
+                begin
+                oled_data <= purple_c;
                 end
             else
                 begin
@@ -546,9 +644,25 @@ module tankPosition(input clock,
                     begin
                     oled_data <= white_c;
                     end
-            else if(fired == 1 && x <= bullet_x + 1 && x >= bullet_x - 1 && y <= bullet_y + 1 && y >= bullet_y - 1)
+                else if(fired[0] == 1 && x <= bullet1_x + 1 && x >= bullet1_x - 1 && y <= bullet1_y + 1 && y >= bullet1_y - 1) //shot 1
                     begin
                     oled_data <= green_c;
+                    end
+                else if(fired[1] == 1 && x <= bullet2_x + 1 && x >= bullet2_x - 1 && y <= bullet2_y + 1 && y >= bullet2_y - 1) //shot 2
+                    begin
+                    oled_data <= blue_c;
+                    end
+                else if(fired[2] == 1 && x <= bullet3_x + 1 && x >= bullet3_x - 1 && y <= bullet3_y + 1 && y >= bullet3_y - 1) //shot 3
+                    begin
+                    oled_data <= red_c;
+                    end
+                else if(fired[3] == 1 && x <= bullet4_x + 1 && x >= bullet4_x - 1 && y <= bullet4_y + 1 && y >= bullet4_y - 1) //shot 4
+                    begin
+                    oled_data <= white_c;
+                    end
+                else if(fired[4] == 1 && x <= bullet5_x + 1 && x >= bullet5_x - 1 && y <= bullet5_y + 1 && y >= bullet5_y - 1) //shot 5
+                    begin
+                    oled_data <= purple_c;
                     end
                 else
                     begin
@@ -596,9 +710,25 @@ module tankPosition(input clock,
                 begin
                 oled_data <= white_c;
                 end
-            else if(fired == 1 && x <= bullet_x + 1 && x >= bullet_x - 1 && y <= bullet_y + 1 && y >= bullet_y - 1)
+            else if(fired[0] == 1 && x <= bullet1_x + 1 && x >= bullet1_x - 1 && y <= bullet1_y + 1 && y >= bullet1_y - 1) //shot 1
                 begin
                 oled_data <= green_c;
+                end
+            else if(fired[1] == 1 && x <= bullet2_x + 1 && x >= bullet2_x - 1 && y <= bullet2_y + 1 && y >= bullet2_y - 1) //shot 2
+                begin
+                oled_data <= blue_c;
+                end
+            else if(fired[2] == 1 && x <= bullet3_x + 1 && x >= bullet3_x - 1 && y <= bullet3_y + 1 && y >= bullet3_y - 1) //shot 3
+                begin
+                oled_data <= red_c;
+                end
+            else if(fired[3] == 1 && x <= bullet4_x + 1 && x >= bullet4_x - 1 && y <= bullet4_y + 1 && y >= bullet4_y - 1) //shot 4
+                begin
+                oled_data <= white_c;
+                end
+            else if(fired[4] == 1 && x <= bullet5_x + 1 && x >= bullet5_x - 1 && y <= bullet5_y + 1 && y >= bullet5_y - 1) //shot 5
+                begin
+                oled_data <= purple_c;
                 end
             else
                 begin
