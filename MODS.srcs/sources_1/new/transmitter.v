@@ -36,7 +36,6 @@ module transmitter (input clk, START, [15:0] transmit_data, output reg TRANSMIT_
         if (START == 0 && TIMER == 0) BEGIN <= 0;
         if (START == 1 && TIMER == 0) begin
             BEGIN <= 1;
-            TIMER <= TIMER + 1;
         end
         
         if (BEGIN) begin
