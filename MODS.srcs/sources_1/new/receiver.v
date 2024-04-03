@@ -20,10 +20,10 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module receiver (input clk, RECEIVE_BIT, output reg RX_DONE = 1, reg [15:0] received = 0);
+module receiver (input clk, RECEIVE_BIT, output reg RX_DONE = 1, reg [18:0] received = 0);
 
     wire clk_500khz;
-    reg [15:0] buffer = 0;
+    reg [18:0] buffer = 0;
     reg [31:0] COUNTER = 0;
     
     slow_clock c0 (.CLOCK(clk), .m(32'd99), .SLOW_CLOCK(clk_500khz));
@@ -34,11 +34,11 @@ module receiver (input clk, RECEIVE_BIT, output reg RX_DONE = 1, reg [15:0] rece
             COUNTER <= COUNTER + 1;
             RX_DONE <= 0;
         end
-        if (COUNTER > 0 && COUNTER <= 16) begin // receiving data
+        if (COUNTER > 0 && COUNTER <= 19) begin // receiving data
             COUNTER <= COUNTER + 1;
-            received[15:0] <= {RECEIVE_BIT, received[15:1]};
+            received[18:0] <= {RECEIVE_BIT, received[18:1]};
         end
-        if (COUNTER > 16 && RECEIVE_BIT == 1) begin // finish receiving
+        if (COUNTER > 19 && RECEIVE_BIT == 1) begin // finish receiving
             COUNTER <= 0;
             RX_DONE <= 1;
         end
