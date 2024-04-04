@@ -236,7 +236,7 @@ module tank_move (input clk, [2:0] dir, movement, input GAME_START, GAME_END, RX
             // data[18:16] = user direction state
             // with respect to the user's coordinates
             to_transmit <= {dir, user_y_cen, user_x_cen};
-            TX_START <= 1;
+            if (prev_dir != dir || movement != 0) TX_START <= 1;
         end
         else if (GAME_END == 1 && USER_READY == 1) begin
 
