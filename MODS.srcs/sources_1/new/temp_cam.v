@@ -20,9 +20,58 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x_cen, user_y_cen, opp_x_cen, opp_y_cen,
+module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_x, enemy_y,
                 input [2:0] user_dir, opp_dir, input [39:0] b_x_cen, b_y_cen, ob_x_cen, ob_y_cen,
                 output reg [15:0] camera = 0);
+                
+    //Movement module to:
+    //  1. constraint players coords INSIDE map boundary - 0 < x < 100, 0 < y < 150 (cannot be on map edge)
+    //  2. prevent players coords from being inside 40x40 pillar
+    //      > to consider tank width
+    //          if tank is 3 pixels wide and player_x = 1, then render tank on top of map border at x = 0, since tank covers x = 0 to 2 wide.
+    //          if tank is 3 pixels wide, then | player_x - pillar_x | at least 1, otherwise overlap...
+    
+    //Map is 100 * 150 pixels,
+    //Initialise coords of map elements
+    
+    reg [7:0] border_x; //bottom left corner of map border. Border == 100 * 150
+    reg [7:0] border_y;
+    reg [7:0] border_x1_rel; //relative coord W.R.T camera coord
+    reg [7:0] border_y1_rel;
+    reg [7:0] border_x2_rel; //relative coord W.R.T camera coord
+    reg [7:0] border_y2_rel;
+    
+    reg [7:0] pillar_x; //bottom left corner of pillar. Pillar == 40 * 40
+    reg [7:0] pillar_y;
+    reg [7:0] pillar_x1_rel;
+    reg [7:0] pillar_y1_rel;
+    reg [7:0] pillar_x2_rel;
+    reg [7:0] pillar_y2_rel;
+    
+    reg [7:0] opp_x_cen;
+    reg [7:0] opp_y_cen;
+    reg [7:0] user_x_cen;
+    reg [7:0] user_y_cen;
+    
+    //OLED display maintain center point on camera coords
+    //Camera coords to fix 20 pixels above tank coords.
+    //Map display area is 96x64 (same size as OLED)
+    //default 2d FOV of 96x74 (OLED)
+    //
+    //Initialise camera coords and map display area
+    
+    reg [7:0] camera_x;
+    reg [7:0] camera_y;
+    
+    //Initialise starting positions of map elements
+    initial begin
+        user_x_cen = 48;
+        user_y_cen = 48;
+        border_x = 0; //left side
+        border_y = 0; //top sidde
+        pillar_x = 30; //left side
+        pillar_y = 55; //top side
+    end
                 
     reg [15:0] box_colour = 0;     
     reg [15:0] green_c = 16'b00000_111111_00000; 
@@ -504,6 +553,36 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x_cen, user_y_cen
     always @ (posedge clk) begin
         has_opp <= 1;
         has_user <= 1;
+        
+        //calculate camera position
+        camera_x = user_x;
+        camera_y = user_y;
+        
+        //calculate map elements (relative to camera position)
+        border_x1_rel = border_x - camera_x + 48;
+        border_y1_rel = border_y - camera_y + 32;
+        border_x2_rel = border_x1_rel + 100;
+        border_y2_rel = border_y1_rel + 150;
+        pillar_x1_rel = pillar_x - camera_x + 48; 
+        pillar_y1_rel = pillar_y - camera_y + 32;
+        pillar_x2_rel = pillar_x1_rel + 40;
+        pillar_y2_rel = pillar_y1_rel + 40;
+        opp_x_cen = enemy_x - camera_x + 48;
+        opp_y_cen = enemy_y - camera_y + 32;
+        
+        //render OLED display
+
+        //render border
+        if (x == border_x1_rel || x == border_x1_rel + 1 || x == border_x2_rel || x == border_x2_rel - 1 ||
+            y == border_y1_rel || y == border_y1_rel + 1||  y == border_y2_rel ||  y == border_y2_rel - 1) begin
+            camera <= white_c;
+        end
+        
+        //render pillar
+        if (x >= pillar_x1_rel && x < pillar_x2_rel ||
+            y >= pillar_y1_rel && y < pillar_y2_rel) begin
+            camera <= white_c;    
+        end
 
         case (user_dir)
             3'b000 : begin // D position 1 (facing forward)

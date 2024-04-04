@@ -89,7 +89,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
                   .received_data(opp_data), .to_transmit(user_data), .TX_START(TX_START_TANK), .dir(user_dir_state), .movement(user_move_state),
                   .user_x_cen(user_x_pos), .user_y_cen(user_y_pos), .opp_x_cen(opp_x_pos), .opp_y_cen(opp_y_pos), .opp_dir(opp_dir_state));
     
-    temp_cam cam (.clk(clk_25Mhz), .x(x), .y(y), .user_x_cen(user_x_pos), .user_y_cen(user_y_pos), .opp_x_cen(opp_x_pos), .opp_y_cen(opp_y_pos),
+    temp_cam cam (.clk(clk_25Mhz), .x(x), .y(y), .user_x(user_x_pos), .user_y(user_y_pos), .enemy_x(opp_x_pos), .enemy_y(opp_y_pos),
                   .user_dir(user_dir_state), .opp_dir(opp_dir_state),
                   .b_x_cen(user_b_x), .b_y_cen(user_b_y), .ob_x_cen(opp_b_x), .ob_y_cen(opp_b_y),
                   .camera(camera));
