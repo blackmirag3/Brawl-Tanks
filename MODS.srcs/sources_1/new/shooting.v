@@ -130,9 +130,9 @@ module shooting (input clk, FIRE_TRIGGER, GAME_START, NEW_GAME, GAME_END, [2:0] 
             end
             
             if (can_fire == 0) begin
-                shot_delay <= shot_delay == 250 ? shot_delay : shot_delay + 1;
+                shot_delay <= shot_delay == 230 ? shot_delay : shot_delay + 1;
                 
-                if (FIRE_TRIGGER == 0 && shot_delay == 250) begin
+                if (FIRE_TRIGGER == 0 && shot_delay == 230) begin
                     can_fire <= 1;
                     shot_delay <= 0;
                 end

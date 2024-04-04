@@ -82,10 +82,6 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
     
     transmitter t_tank (.clk(clk), .START(TX_START_TANK), .transmit_data(user_data), .TRANSMIT_BIT(TX[0]));
     receiver r_tank (.clk(clk), .RECEIVE_BIT(RX[0]), .RX_DONE(RX_DONE_TANK), .received(opp_data));
-    // temp_tank tank (.clk(clk), .RX_DONE(RX_DONE_TANK), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .btnC(btnC),
-    //                 .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
-    //                 .received_data(opp_data), .x(x), .y(y), .oled_cam(camera), .to_transmit(user_data), .TX_START(TX_START_TANK),
-    //                 .FIRE_TRIGGER(m_left), .hit_opp(hit));
 
     tank_move t0 (.clk(clk), .RX_DONE(RX_DONE_TANK), .can_up(can_up), .can_down(can_down), .can_left(can_left), .can_right(can_right), .btnC(btnC),
                   .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
