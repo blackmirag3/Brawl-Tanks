@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 02.04.2024 12:37:02
+// Create Date: 04/03/2024 10:12:48 PM
 // Design Name: 
-// Module Name: camera_top
+// Module Name: temp_cam
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,57 +20,10 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module camera_top(
-    input clk,
-    input [2:0] user_dir, opp_dir,
-    input [7:0] user_x_cen, user_y_cen, enemy_x, enemy_y,
-    input [12:0] x, y, //for OLED
-    output reg [15:0] camera = 0
-      );
-      
-    //Movement module to:
-    //  1. constraint players coords INSIDE map boundary - 0 < x < 100, 0 < y < 150 (cannot be on map edge)
-    //  2. prevent players coords from being inside 39x39 pillar (30 - 69, 55 - 94)
-    //      > to consider tank width
-    //          if tank is 3 pixels wide and player_x = 1, then render tank on top of map border at x = 0, since tank covers x = 0 to 2 wide.
-    //          if tank is 3 pixels wide, then | player_x - pillar_x | at least 1, otherwise overlap...
-    
-    //Map is 100 * 150 pixels,
-    //Initialise coords of map elements
-    
-    reg signed [15:0] border_x; //bottom left corner of map border. Border == 100 * 150
-    reg signed [15:0] border_y;
-    reg signed [15:0] border_x_rel; //relative coord W.R.T camera coord
-    reg signed [15:0] border_y_rel;
-    
-    reg signed [15:0] pillar_x; //bottom left corner of pillar. Pillar == 40 * 40
-    reg signed [15:0] pillar_y;
-    reg signed [15:0] pillar_x_rel;
-    reg signed [15:0] pillar_y_rel;
-    
-    reg signed [15:0] opp_x_cen;
-    reg signed [15:0] opp_y_cen;
-    
-    //OLED display maintain center point on camera coords
-    //Camera coords to fix 20 pixels above tank coords.
-    //Map display area is 96x64 (same size as OLED)
-    // map_bottom_left represent bottom left corner coords of display area, to render map info only within x to x+95 and y to y + 63
-    //default 2d FOV of 96x74 (OLED)
-    //
-    //Initialise camera coords and map display area
-    
-    reg signed [15:0] camera_x;
-    reg signed [15:0] camera_y;
-    reg map_bottom_left;
-    
-    //Initialise starting positions of map elements
-    initial begin
-        border_x = 0;
-        border_y = 0;
-        pillar_x = 30;
-        pillar_y = 55;
-    end
-    
+module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x_cen, user_y_cen, opp_x_cen, opp_y_cen,
+                input [2:0] user_dir, opp_dir,
+                output reg [15:0] camera = 0);
+                
     reg [15:0] box_colour = 0;     
     reg [15:0] green_c = 16'b00000_111111_00000; 
     reg [15:0] red_c = 16'b11111_000000_00000; 
@@ -83,13 +36,13 @@ module camera_top(
     
     // user tank colours
     wire user_front_red, user_front_blue, user_front_white;
-    
+        
     assign user_front_red = (x >= user_x_cen - 1 && x <= user_x_cen + 1 && y >= user_y_cen - 3 && y <= user_y_cen - 1) || //1
-                                (((x == user_x_cen + 2) || (x == user_x_cen - 2)) && (y == user_y_cen)) ||
-                                ((y == user_y_cen + 1) && (x <= user_x_cen - 1) && (x >= user_x_cen - 2)) ||
-                                ((y == user_y_cen + 1) && (x >= user_x_cen + 1) && (x <= user_x_cen + 2)) ||
-                                ((y == user_y_cen + 2) && (x <= user_x_cen + 1) && (x >= user_x_cen - 1));
-                                
+                            (((x == user_x_cen + 2) || (x == user_x_cen - 2)) && (y == user_y_cen)) ||
+                            ((y == user_y_cen + 1) && (x <= user_x_cen - 1) && (x >= user_x_cen - 2)) ||
+                            ((y == user_y_cen + 1) && (x >= user_x_cen + 1) && (x <= user_x_cen + 2)) ||
+                            ((y == user_y_cen + 2) && (x <= user_x_cen + 1) && (x >= user_x_cen - 1));
+                            
     assign user_front_blue = ((y == user_y_cen - 1) && (x <= user_x_cen - 2) && (x >= user_x_cen - 3)) || //0
                              ((y == user_y_cen - 1) && (x <= user_x_cen + 3) && (x >= user_x_cen + 2)) ||
                              ((y == user_y_cen) && ((x == user_x_cen - 3) || (x == user_x_cen + 3))) ||
@@ -498,45 +451,11 @@ module camera_top(
                            ((y == opp_y_cen + 3) && (x <= opp_x_cen - 2) && (x >= opp_x_cen - 3)) ||
                            ((y == opp_y_cen + 4) && (x <= opp_x_cen - 1) && (x >= opp_x_cen - 2)) ||
                            ((y == opp_y_cen + 4) && (x <= opp_x_cen) && (x >= opp_x_cen - 1));
-    
-    
-    
-    
-//    wire clk_1khz; 
-//    slow_clock c0 (.CLOCK(clk), .m(32'd49999), .SLOW_CLOCK(clk_1khz));
-    
-    always @ (posedge clk) begin
-//        has_opp <= 1;
-//        has_user <= 1;
-        
-//        //calculate camera position
-//        camera_x = user_x_cen;
-//        camera_y = user_y_cen + 20;
-        
-//        //calculate map elements (relative to camera position)
-//        border_x_rel = border_x - camera_x + 48;
-//        border_y_rel = border_y - camera_y + 32;
-//        pillar_x_rel = pillar_x - camera_x + 48; 
-//        pillar_y_rel = pillar_y - camera_y + 32;
-//        opp_x_cen = enemy_x - camera_x + 48; //TODO: check if valid -> enemy_x (8 bit unsigned) - camera_x (16 bit signed)
-//        opp_y_cen = enemy_y - camera_y + 32; //TODO: check if valid
-        
-        //render OLED display
 
-        //render border
-        if (x == border_x_rel || x == border_x_rel + 100 ||
-            y == border_y_rel || y == border_y_rel + 150) begin
-            camera <= white_c;
-        end
-        
-        //render pillar
-        if (x >= pillar_x_rel && x < pillar_x_rel + 30 ||
-            y >= pillar_y_rel && y < pillar_y_rel + 30) begin
-            camera <= white_c;    
-        end
-        
-        //render player and enemy tanks
-        
+    always @ (posedge clk) begin
+        has_opp <= 1;
+        has_user <= 1;
+
         case (user_dir)
             3'b000 : begin // D position 1 (facing forward)
                 if (user_front_red) begin // 1
@@ -607,17 +526,17 @@ module camera_top(
                     user_col <= red_c;
                 end
                 else if (user_d_blue) begin
-                        user_col <= blue_c;
-                    end
-                    else if (user_d_white) begin
-                        user_col <= white_c;
-                    end
-                    else begin
-                        has_user <= 0;
-                        user_col <= 0;
-                    end
+                    user_col <= blue_c;
                 end
-              
+                else if (user_d_white) begin
+                    user_col <= white_c;
+                end
+                else begin
+                    has_user <= 0;
+                    user_col <= 0;
+                end
+            end
+          
             3'b101 : begin // D position 6 (facing back-left)
                 if (user_dl_red) begin
                     user_col <= red_c;
@@ -665,8 +584,9 @@ module camera_top(
                     user_col <= 0;
                 end
             end
+            
         endcase
-    
+
         case (opp_dir)
             3'b000 : begin // D position 1 (facing forward)
                 if (opp_front_red) begin // 1
@@ -795,8 +715,11 @@ module camera_top(
                     opp_col <= 0;
                 end
             end
+            
         endcase
-        
+
         camera <= has_user ? user_col : opp_col;
     end
+    
+
 endmodule
