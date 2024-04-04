@@ -35,7 +35,8 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
     
     wire [18:0] user_data, opp_data;
     wire [2:0] user_move_state, user_dir_state, opp_dir_state;
-    wire [7:0] user_x_pos, user_y_pos, opp_x_pos, opp_y_pos;
+    wire [7:0] user_x_pos, user_y_pos; 
+    wire opp_x_pos, opp_y_pos;
     wire [15:0] ready_screen;
     
     wire [18:0] user_hit, opp_hit;
@@ -56,16 +57,16 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
     wire [2:0] bullets_fired;
     wire [39:0] user_b_x, user_b_y, opp_b_x, opp_b_y;
     
-    game_state gs (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen),
-                   .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START),
-                   .GAME_END(GAME_END), .USER_WIN(USER_WIN), .NEW_GAME(NEW_GAME));
+//    game_state gs (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen),
+//                   .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START),
+//                   .GAME_END(GAME_END), .USER_WIN(USER_WIN), .NEW_GAME(NEW_GAME));
     
     debouncer d0 (.clk(clk), .btn(left), .signal(m_left));
     
     transmitter t_bullet (.clk(clk), .START(TX_START_B), .transmit_data(user_bullet_data), .TRANSMIT_BIT(TX[2]));
     receiver r_bullet (.clk(clk), .RECEIVE_BIT(RX[2]), .RX_DONE(RX_DONE_B), .received(opp_bullet_data));
     
-    shooting s_unit (.clk(clk), .FIRE_TRIGGER(m_left), .GAME_START(GAME_START), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
+    shooting s_unit (.clk(clk), .FIRE_TRIGGER(m_left), .GAME_START(1), .NEW_GAME(NEW_GAME), .GAME_END(0),
                      .dir(user_dir_state), .opp_dir(opp_dir_state), .TX_START_B(TX_START_B),
                      .RX_DONE_B(RX_DONE_B), .received_b(opp_bullet_data),
                      .user_pos({user_y_pos, user_x_pos}), .opp_pos({opp_y_pos, opp_x_pos}),
@@ -77,18 +78,14 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
 //    assign TX = TRANSMITTING ? TX_BIT : 1;
     
     tank_move_ctrl ctrl_unit (.clk(clk), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .right_mouse(right),
-                              .START(GAME_START), .NEW_GAME(NEW_GAME), .can_left(can_left), .can_right(can_right),
+                              .START(1), .NEW_GAME(NEW_GAME), .can_left(can_left), .can_right(can_right),
                               .movement(user_move_state), .dir_state(user_dir_state));
     
     transmitter t_tank (.clk(clk), .START(TX_START_TANK), .transmit_data(user_data), .TRANSMIT_BIT(TX[0]));
     receiver r_tank (.clk(clk), .RECEIVE_BIT(RX[0]), .RX_DONE(RX_DONE_TANK), .received(opp_data));
-    // temp_tank tank (.clk(clk), .RX_DONE(RX_DONE_TANK), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .btnC(btnC),
-    //                 .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
-    //                 .received_data(opp_data), .x(x), .y(y), .oled_cam(camera), .to_transmit(user_data), .TX_START(TX_START_TANK),
-    //                 .FIRE_TRIGGER(m_left), .hit_opp(hit));
 
     tank_move t0 (.clk(clk), .RX_DONE(RX_DONE_TANK), .can_up(can_up), .can_down(can_down), .can_left(can_left), .can_right(can_right), .btnC(btnC),
-                  .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
+                  .GAME_START(1), .USER_READY(USER_READY), .OPP_READY(OPP_READY), .NEW_GAME(NEW_GAME), .GAME_END(0),
                   .received_data(opp_data), .to_transmit(user_data), .TX_START(TX_START_TANK), .dir(user_dir_state), .movement(user_move_state),
                   .user_x_cen(user_x_pos), .user_y_cen(user_y_pos), .opp_x_cen(opp_x_pos), .opp_y_cen(opp_y_pos), .opp_dir(opp_dir_state));
     
@@ -100,8 +97,8 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
 
     transmitter t_hp (.clk(clk), .START(TX_START_HP), .transmit_data(opp_hit), .TRANSMIT_BIT(TX[1]));
     receiver r_hp (.clk(clk), .RECEIVE_BIT(RX[1]), .RX_DONE(RX_DONE_HP), .received(user_hit));
-    health_logic hp (.clk(clk), .hit(hit), .GAME_START(GAME_START), .RX_DONE(RX_DONE_HP), .user_hit(user_hit[15:0]),
-                     .GAME_END(GAME_END), .USER_WIN(USER_WIN), .TX_START(TX_START_HP), .opp_hit(opp_hit[15:0]),
+    health_logic hp (.clk(clk), .hit(hit), .GAME_START(1), .RX_DONE(RX_DONE_HP), .user_hit(user_hit[15:0]),
+                     .GAME_END(0), .USER_WIN(USER_WIN), .TX_START(TX_START_HP), .opp_hit(opp_hit[15:0]),
                      .NEW_GAME(NEW_GAME), .hp_bar(led_hp));
     
     slow_clock c0 (.CLOCK(clk), .m(32'd7), .SLOW_CLOCK(clk_6p25Mhz));
@@ -144,16 +141,9 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
     always @ (posedge clk)
     begin
         an <= 4'b1111;
-        oled_data <= GAME_START == 1 && GAME_END == 0 ? camera : ready_screen;
+        oled_data <= camera;
         led[6:0] <= led_hp;
         
-        if (RX_DONE_TANK == 0) begin
-            led[9] <= 1;
-        end
-        if (led[9] == 1) begin
-            test <= test == 99999 ? 0 : test + 1;
-            led[9] <= test == 99999 ? 0 : 1;
-        end
         
         led[10] <= OPP_READY;
         led[11] <= USER_READY;
@@ -161,7 +151,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
         led[13] <= ~GAME_END;
         led[15] <= m_left;
         
-        if (GAME_START && GAME_END == 0) begin
+//        if (GAME_START && GAME_END == 0) begin
             an[3:0] <= 4'b1110;
             case (bullets_fired)
                 0 : seg[6:0] <= 7'b0010010;
@@ -174,7 +164,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
                     an[3:0] <= 4'b0000;
                 end
             endcase
-        end
+//        end
     end
                         
 endmodule
