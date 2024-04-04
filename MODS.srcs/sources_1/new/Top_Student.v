@@ -11,11 +11,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
+module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
                     inout PS2Clk, PS2Data,
                     output [7:0] JC, reg [15:0] led, 
                     output reg [6:0] seg = 7'b1111111, output reg [3:0] an, output reg dp = 1,
-                    output [1:0] TX);
+                    output [2:0] TX);
     
     reg [31:0] test = 0;
     
@@ -42,6 +42,9 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
     wire RX_DONE_HP, TX_START_HP, GAME_END, USER_WIN;
     wire GAME_START, USER_READY, OPP_READY, NEW_GAME;
     
+    wire [18:0] user_bullet_data, opp_bullet_data;
+    wire RX_DONE_B, TX_START_B;
+    
     wire can_up, can_down, can_left, can_right;
 
     check_movement m0 (.user_x_cen(user_x_pos), .user_y_cen(user_y_pos), .opp_x_cen(opp_x_pos), .opp_y_cen(opp_y_pos),
@@ -50,11 +53,24 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
     wire hit;
     wire [6:0] led_hp;
     
+    wire [2:0] bullets_fired;
+    wire [39:0] user_b_x, user_b_y, opp_b_x, opp_b_y;
+    
     game_state gs (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen),
                    .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START),
                    .GAME_END(GAME_END), .USER_WIN(USER_WIN), .NEW_GAME(NEW_GAME));
     
     debouncer d0 (.clk(clk), .btn(left), .signal(m_left));
+    
+    transmitter t_bullet (.clk(clk), .START(TX_START_B), .transmit_data(user_bullet_data), .TRANSMIT_BIT(TX[2]));
+    receiver r_bullet (.clk(clk), .RECEIVE_BIT(RX[2]), .RX_DONE(RX_DONE_B), .received(opp_bullet_data));
+    
+    shooting s_unit (.clk(clk), .FIRE_TRIGGER(m_left), .GAME_START(GAME_START), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
+                     .dir(user_dir_state), .opp_dir(opp_dir_state), .TX_START_B(TX_START_B),
+                     .RX_DONE_B(RX_DONE_B), .received_b(opp_bullet_data),
+                     .user_pos({user_y_pos, user_x_pos}), .opp_pos({opp_y_pos, opp_x_pos}),
+                     .FIRED(bullets_fired), .transmit_b(user_bullet_data), .opp_hit(hit),
+                     .b_x_cen(user_b_x), .b_y_cen(user_b_y), .ob_x_cen(opp_b_x), .ob_y_cen(opp_b_y));
     
 //    assign led[1] = OPP_READY;
 //    assign led[2] = USER_READY;
@@ -78,6 +94,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
     
     temp_cam cam (.clk(clk_25Mhz), .x(x), .y(y), .user_x_cen(user_x_pos), .user_y_cen(user_y_pos), .opp_x_cen(opp_x_pos), .opp_y_cen(opp_y_pos),
                   .user_dir(user_dir_state), .opp_dir(opp_dir_state),
+                  .b_x_cen(user_b_x), .b_y_cen(user_b_y), .ob_x_cen(opp_b_x), .ob_y_cen(opp_b_y),
                   .camera(camera));
 
 
@@ -126,6 +143,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
                                       
     always @ (posedge clk)
     begin
+        an <= 4'b1111;
         oled_data <= GAME_START == 1 && GAME_END == 0 ? camera : ready_screen;
         led[6:0] <= led_hp;
         
@@ -142,6 +160,21 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [1:0] RX,
         
         led[13] <= ~GAME_END;
         led[15] <= m_left;
+        
+        if (GAME_START && GAME_END == 0) begin
+            an[3:0] <= 4'b1110;
+            case (bullets_fired)
+                0 : seg[6:0] <= 7'b0010010;
+                1 : seg[6:0] <= 7'b0011001;
+                2 : seg[6:0] <= 7'b0110000;
+                3 : seg[6:0] <= 7'b0100100;
+                4 : seg[6:0] <= 7'b1111001;
+                default : begin
+                    seg[6:0] <= 7'b0111111;
+                    an[3:0] <= 4'b0000;
+                end
+            endcase
+        end
     end
                         
 endmodule

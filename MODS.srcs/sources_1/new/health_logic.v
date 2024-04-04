@@ -75,7 +75,7 @@ module health_logic (input clk, hit, GAME_START, RX_DONE, RESET, NEW_GAME, [15:0
         end
         if (RX_DONE == 1 && WAIT == 1) begin
             WAIT <= 0;
-//            user_hp <= (user_hit == 16'haaaa && user_hit != prev_user_hit && user_hp > 0) ? user_hp - 1 : user_hp;
+            user_hp <= (user_hit == 16'haaaa && user_hit != prev_user_hit && user_hp > 0) ? user_hp - 1 : user_hp;
             prev_user_hit <= user_hit;
         end
         

@@ -21,7 +21,7 @@
 
 
 module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x_cen, user_y_cen, opp_x_cen, opp_y_cen,
-                input [2:0] user_dir, opp_dir,
+                input [2:0] user_dir, opp_dir, input [39:0] b_x_cen, b_y_cen, ob_x_cen, ob_y_cen,
                 output reg [15:0] camera = 0);
                 
     reg [15:0] box_colour = 0;     
@@ -30,10 +30,59 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x_cen, user_y_cen
     reg [15:0] blue_c = 16'b00000_000000_11111;
     reg [15:0] purple_c = 16'b11111_000000_11111;
     reg [15:0] white_c = 16'b11111_111111_11111;
+    reg [15:0] yellow_c = 16'b11111_111111_00000;
     
     reg [15:0] user_col = 0, opp_col = 0;
     reg has_user = 0, has_opp = 0;
     
+    wire [7:0] user_x0, user_x1, user_x2, user_x3, user_x4;
+    wire [7:0] opp_x0, opp_x1, opp_x2, opp_x3, opp_x4;
+    wire [7:0] user_y0, user_y1, user_y2, user_y3, user_y4;
+    wire [7:0] opp_y0, opp_y1, opp_y2, opp_y3, opp_y4;
+    
+    assign {user_x0, user_x1, user_x2, user_x3, user_x4} = b_x_cen;
+    assign {opp_x0, opp_x1, opp_x2, opp_x3, opp_x4} = ob_x_cen;
+    assign {user_y0, user_y1, user_y2, user_y3, user_y4} = b_y_cen;
+    assign {opp_y0, opp_y1, opp_y2, opp_y3, opp_y4} = ob_y_cen;
+//    assign user_x0 = b_x_cen[7:0];
+//    assign user_x1 = b_x_cen[15:8];
+//    assign user_x2 = b_x_cen[23:16];
+//    assign user_x3 = b_x_cen[31:24];
+//    assign user_x4 = b_x_cen[39:32];
+    
+//    assign user_y0 = b_y_cen[7:0];
+//    assign user_y1 = b_y_cen[15:8];
+//    assign user_y2 = b_y_cen[23:16];
+//    assign user_y3 = b_y_cen[31:24];
+//    assign user_y4 = b_y_cen[39:32];
+    
+//    assign opp_x0 = ob_x_cen[7:0];
+//    assign opp_x1 = ob_x_cen[15:8];
+//    assign opp_x2 = ob_x_cen[23:16];
+//    assign opp_x3 = ob_x_cen[31:24];
+//    assign opp_x4 = ob_x_cen[39:32];
+    
+//    assign opp_y0 = ob_y_cen[7:0];
+//    assign opp_y1 = ob_y_cen[15:8];
+//    assign opp_y2 = ob_y_cen[23:16];
+//    assign opp_y3 = ob_y_cen[31:24];
+//    assign opp_y4 = ob_y_cen[39:32];
+    
+    // bullets
+    wire user_bullets, opp_bullets;
+    
+    assign user_bullets = (x >= user_x0 - 1 && x <= user_x0 + 1 && y >= user_y0 - 1 && y <= user_y0 + 1) ||
+                          (x >= user_x1 - 1 && x <= user_x1 + 1 && y >= user_y1 - 1 && y <= user_y1 + 1) ||
+                          (x >= user_x2 - 1 && x <= user_x2 + 1 && y >= user_y2 - 1 && y <= user_y2 + 1) ||
+                          (x >= user_x3 - 1 && x <= user_x3 + 1 && y >= user_y3 - 1 && y <= user_y3 + 1) ||
+                          (x >= user_x4 - 1 && x <= user_x4 + 1 && y >= user_y4 - 1 && y <= user_y4 + 1);
+    
+    assign opp_bullets = (x >= opp_x0 - 1 && x <= opp_x0 + 1 && y >= opp_y0 - 1 && y <= opp_y0 + 1) ||
+                         (x >= opp_x1 - 1 && x <= opp_x1 + 1 && y >= opp_y1 - 1 && y <= opp_y1 + 1) ||
+                         (x >= opp_x2 - 1 && x <= opp_x2 + 1 && y >= opp_y2 - 1 && y <= opp_y2 + 1) ||
+                         (x >= opp_x3 - 1 && x <= opp_x3 + 1 && y >= opp_y3 - 1 && y <= opp_y3 + 1) ||
+                         (x >= opp_x4 - 1 && x <= opp_x4 + 1 && y >= opp_y4 - 1 && y <= opp_y4 + 1);
+
     // user tank colours
     wire user_front_red, user_front_blue, user_front_white;
         
@@ -719,6 +768,18 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x_cen, user_y_cen
         endcase
 
         camera <= has_user ? user_col : opp_col;
+        
+        if (has_user == 0 && has_opp == 0) begin
+            
+            if (user_bullets) begin
+                camera <= green_c;
+            end
+            else if (opp_bullets) begin
+                camera <= yellow_c;
+            end
+            else camera <= 0;
+        end
+        
     end
     
 

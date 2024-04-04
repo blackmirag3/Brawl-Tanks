@@ -49,7 +49,7 @@ module user_bullet (input bullet_speed, FIRE, RST, [2:0] dir, [15:0] user_pos, [
     assign border_left_coll = b_x_cen - 1 == 0;
     assign border_right_coll = b_x_cen + 1 == 95;
     
-    always @ (posedge bullet_speed, RST)
+    always @ (posedge bullet_speed, posedge RST)
     begin
         
         if (FIRE && has_fired == 0) begin
@@ -106,53 +106,53 @@ module user_bullet (input bullet_speed, FIRE, RST, [2:0] dir, [15:0] user_pos, [
             if (collided == 0) begin
                 case (dir)
                     3'b000 : begin
-                        b_y_cen <= user_y_cen - 1;
+                        b_y_cen <= b_y_cen - 1;
                         
                         HIT <= up_hit;
                         collided <= up_hit || border_up_coll;
                     end
                     3'b001 : begin
-                        b_x_cen <= user_x_cen + 1;
-                        b_y_cen <= user_y_cen - 1;
+                        b_x_cen <= b_x_cen + 1;
+                        b_y_cen <= b_y_cen - 1;
                         
                         HIT <= up_right;
                         collided <= up_right || border_up_coll || border_right_coll;
                     end
                     3'b010 : begin
-                        b_x_cen <= user_x_cen + 1;
+                        b_x_cen <= b_x_cen + 1;
                         
                         HIT <= right_hit;
                         collided <= right_hit || border_right_coll;
                     end
                     3'b011 : begin
-                        b_x_cen <= user_x_cen + 1;
-                        b_y_cen <= user_y_cen + 1;
+                        b_x_cen <= b_x_cen + 1;
+                        b_y_cen <= b_y_cen + 1;
                         
                         HIT <= down_right;
                         collided <= down_right || border_down_coll || border_right_coll;
                     end
                     3'b100 : begin
-                        b_y_cen <= user_y_cen + 1;
+                        b_y_cen <= b_y_cen + 1;
                     
                         HIT <= down_hit;
                         collided <= down_hit || border_down_coll;
                     end
                     3'b101 : begin
-                        b_x_cen <= user_x_cen - 1;
-                        b_y_cen <= user_y_cen + 1;
+                        b_x_cen <= b_x_cen - 1;
+                        b_y_cen <= b_y_cen + 1;
                     
                         HIT <= down_left;
                         collided <= down_left || border_down_coll || border_left_coll;
                     end
                     3'b110 : begin
-                        b_x_cen <= user_x_cen - 1;
+                        b_x_cen <= b_x_cen - 1;
                     
                         HIT <= left_hit;
                         collided <= left_hit || border_left_coll;
                     end
                     3'b111 : begin
-                        b_x_cen <= user_x_cen - 1;
-                        b_y_cen <= user_y_cen - 1;
+                        b_x_cen <= b_x_cen - 1;
+                        b_y_cen <= b_y_cen - 1;
                         
                         HIT <= up_left;
                         collided <= up_left || border_up_coll || border_left_coll;
