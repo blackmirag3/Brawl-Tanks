@@ -33,10 +33,12 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
 //    slow_clock c2 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
 //    slow_clock c3 (.CLOCK(clk), .m(32'd49999999), .SLOW_CLOCK(slow_clk));
 
-    wire enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel;
-    FOV enemy(clk, 0, 0, 0, 0, 0, enemy_x_rel, enemy_y_rel);
-    FOV pillar(clk, 0, 0, 0, 0, 0, pillar_x_rel, pillar_y_rel);
-    camera_FPS cam_1(clk, enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel, x, y, oled_data);
+    wire [7:0] enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel;
+    wire [2:0] enemy_angle_rel, pillar_angle_rel;
+    
+    FOV enemy(clk, 0, 0, 0, 0, 0, 0, enemy_x_rel, enemy_y_rel, enemy_angle_rel);
+    FOV pillar(clk, 0, 0, 0, 0, 0, 0, pillar_x_rel, pillar_y_rel, pillar_angle_rel);
+    camera_FPS cam_1(clk, enemy_x_rel, enemy_y_rel, enemy_angle_rel, pillar_x_rel, pillar_y_rel, x, y, oled_data);
     camera_top cam_2(clk, 0, 0, 0, 0, 0, 0, x, y, oled_data);
     
     Oled_Display unit_oled (.clk(clk_6p25Mhz), 

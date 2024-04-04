@@ -1,6 +1,6 @@
 # compile verilog/system verilog design source files
 verilog xil_defaultlib  \
-"../../../../MODS.srcs/sources_1/new/FOV.v" \
+"../../../../MODS.srcs/sources_1/new/fov.v" \
 "../../../../MODS.srcs/sim_1/new/fov_sim.v" \
 
 # compile glbl module

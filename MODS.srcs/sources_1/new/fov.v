@@ -23,10 +23,11 @@
 //calculates whether object is within player FOV (90 degree)
 module FOV(
 input clk,
-input [2:0] player_angle, //scaled to 0-7 (3 bits) from 360 degrees
-input [7:0] player_x, player_y, //enemy_x, enemy_y, pillar_x, pillar_y,
+input [2:0] player_angle, object_angle, //scaled to 0-7 (3 bits) from 360 degrees
+input [7:0] player_x, player_y,
 input [7:0] object_x, object_y,
-output reg [7:0] object_x_relative, object_y_relative
+output reg [7:0] object_x_relative, object_y_relative,
+output reg [2:0] object_angle_relative
 //output [7:0] enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel
 );
 
@@ -582,6 +583,10 @@ initial begin
 end
 
 always @(posedge clk) begin
+
+    // Calculate object orientation relative to player direction
+    object_angle_relative = object_angle - player_angle;
+    
     // Translate object position to be relative to player position
     trans_x = object_x - player_x;
     trans_y = object_y - player_y;

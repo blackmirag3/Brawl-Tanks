@@ -19,13 +19,15 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+//All positional inputs are relative to player perspective
+
 //calculates size of object using distance-based projection
 //renders objects using x for horizontal displacement and y distance for render order
 
 module camera_FPS(
 input clock,
-input [2:0] enemy_direction,
 input [7:0] enemy_x, enemy_y,
+input [2:0] enemy_direction,
 input [7:0] pillar_x, pillar_y,
 //input [7:0] border_x, border_y,
 input [12:0] x, y, //for OLED
