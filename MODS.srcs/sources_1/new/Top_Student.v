@@ -33,16 +33,16 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
 //    slow_clock c2 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
 //    slow_clock c3 (.CLOCK(clk), .m(32'd49999999), .SLOW_CLOCK(slow_clk));
     slow_clock c4 (.CLOCK(clk), .m(32'd49999), .SLOW_CLOCK(clk_1Khz));
-    wire [3:0] direction;    // clockwise from 12oClock, 1-8 positions
-    wire [2:0] movement; // 0:no movement, 1:forward, 2:backward, 3:left, 4:right
+//    wire [3:0] direction;    // clockwise from 12oClock, 1-8 positions
+//    wire [2:0] movement; // 0:no movement, 1:forward, 2:backward, 3:left, 4:right
     
-    tankdirection tank_direction(.debounce(clk), .state(direction), .btnR(btnR), .btnL(btnL),
-                                 .RightMouse(right), .clk(clk_1Khz)); //led[15:5]
+//    tankdirection tank_direction(.debounce(clk), .state(direction), .btnR(btnR), .btnL(btnL),
+//                                 .RightMouse(right), .clk(clk_1Khz)); //led[15:5]
                                  
-    tankMovement tank_movement_status (.debounce(clk), .btnR(btnR), .btnL(btnL), 
-                                      .btnU(btnU), .btnD(btnD),
-                                      .RightMouse(right), .clk(clk_1Khz),
-                                      .movement(movement)); //led[4:0]
+//    tankMovement tank_movement_status (.debounce(clk), .btnR(btnR), .btnL(btnL), 
+//                                      .btnU(btnU), .btnD(btnD),
+//                                      .RightMouse(right), .clk(clk_1Khz),
+//                                      .movement(movement)); //led[4:0]
                                       
     wire [7:0] enemy_x_rel, enemy_y_rel, pillar_x_rel, pillar_y_rel;
     wire [2:0] enemy_angle_rel, pillar_angle_rel;
@@ -53,9 +53,9 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
 //    camera_top cam_2(.clk(clk_1Khz), .user_dir(direction), .opp_dir(0), .user_x_cen(50),
 //                     .user_y_cen(30), .enemy_x(60), .enemy_y(100),
 //                     .x(x), .y(y), .camera(oled_data));
-    temp_cam camera_test(.clk(clk_1Khz),.x(x), .y(y), .user_x_cen(50),
-                         .user_y_cen(30), .opp_x_cen(60), .opp_y_cen(100),  .user_dir(direction), .opp_dir(0), 
-                          .camera(oled_data));
+//    temp_cam camera_test(.clk(clk_1Khz),.x(x), .y(y), .user_x_cen(50),
+//                         .user_y_cen(30), .opp_x_cen(60), .opp_y_cen(100),  .user_dir(direction), .opp_dir(0), 
+//                          .camera(oled_data));
     
     
     Oled_Display unit_oled (.clk(clk_6p25Mhz), 
