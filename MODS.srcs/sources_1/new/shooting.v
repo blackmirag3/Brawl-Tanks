@@ -31,6 +31,7 @@ module shooting (input clk, FIRE_TRIGGER, GAME_START, NEW_GAME, GAME_END, [2:0] 
                  output [39:0] b_x_cen, b_y_cen, ob_x_cen, ob_y_cen);
 
     wire clk_1khz, clk_25Mhz, clk_100hz;
+    // 100hz clock is actually 115hz
     wire [7:0] user_x_cen, user_y_cen;
     
     reg [31:0] shot_delay = 0, reload_delay = 0;
@@ -50,7 +51,7 @@ module shooting (input clk, FIRE_TRIGGER, GAME_START, NEW_GAME, GAME_END, [2:0] 
     
     slow_clock c0 (.CLOCK(clk), .m(32'd49999), .SLOW_CLOCK(clk_1khz));
     slow_clock c1 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
-    slow_clock c2 (.CLOCK(clk), .m(32'd499999), .SLOW_CLOCK(clk_100hz));
+    slow_clock c2 (.CLOCK(clk), .m(32'd434782), .SLOW_CLOCK(clk_100hz));
     
     user_bullet b0 (.bullet_speed(clk_100hz), .FIRE(user_bullet_en[0]), .RST(reload), .dir(dir), 
                     .user_pos(user_pos), .opp_pos(opp_pos),
@@ -130,18 +131,18 @@ module shooting (input clk, FIRE_TRIGGER, GAME_START, NEW_GAME, GAME_END, [2:0] 
             end
             
             if (can_fire == 0) begin
-                shot_delay <= shot_delay == 230 ? shot_delay : shot_delay + 1;
+                shot_delay <= shot_delay == 225 ? shot_delay : shot_delay + 1;
                 
-                if (FIRE_TRIGGER == 0 && shot_delay == 230) begin
+                if (FIRE_TRIGGER == 0 && shot_delay == 225) begin
                     can_fire <= 1;
                     shot_delay <= 0;
                 end
             end
             
             if (begin_reload) begin
-                reload_delay <= reload_delay == 2000 ? reload_delay : reload_delay + 1;
+                reload_delay <= reload_delay == 1800 ? reload_delay : reload_delay + 1;
                 
-                if (reload_delay == 2000) begin
+                if (reload_delay == 1800) begin
                     reload <= 1;
                     begin_reload <= 0;
                     reload_delay <= 0;

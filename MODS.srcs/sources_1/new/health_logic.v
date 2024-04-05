@@ -32,6 +32,7 @@ module health_logic (input clk, hit, GAME_START, RX_DONE, RESET, NEW_GAME, [15:0
     reg [3:0] user_hp = 7, opp_hp = 7;
     
     slow_clock c1 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
+//    slow_clock c2 (.CLOCK(clk), .m(32'd4999), .SLOW_CLOCK(clk_10khz));
     slow_clock c2 (.CLOCK(clk), .m(32'd49999), .SLOW_CLOCK(clk_1khz));
     
     assign GAME_END = user_hp == 0 || opp_hp == 0;

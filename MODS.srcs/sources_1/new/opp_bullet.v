@@ -23,7 +23,7 @@
 module opp_bullet (input bullet_speed, FIRE, BREAK, RST, [2:0] dir, [15:0] opp_pos,
                    output reg [7:0] b_x_cen = 200, b_y_cen = 200);
 
-    reg [7:0] rst_x = 200, rst_y = 200;
+    reg [7:0] rst_x = 240, rst_y = 240;
 
     wire [7:0] opp_x_cen, opp_y_cen;
     assign opp_x_cen = opp_pos[7:0];

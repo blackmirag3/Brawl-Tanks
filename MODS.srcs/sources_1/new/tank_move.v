@@ -23,21 +23,23 @@
 module tank_move (input clk, [2:0] dir, movement, input GAME_START, GAME_END, RX_DONE, btnC,
                   input can_up, can_down, can_right, can_left,
                   input [18:0] received_data,
-                  output reg [7:0] user_x_cen = 47, user_y_cen = 58, opp_x_cen = 48, opp_y_cen = 5,
+                  output reg [7:0] user_x_cen = 107, user_y_cen = 192, opp_x_cen = 108, opp_y_cen = 53,
                   output reg USER_READY = 0, OPP_READY = 0, NEW_GAME = 1, TX_START = 0,
                   output reg [18:0] to_transmit, output reg [2:0] opp_dir = 3'b100);
 
-    wire clk_50hz, clk_25Mhz;
+    wire clk_60hz, clk_25Mhz;
     
     reg [2:0] prev_dir = 0;
     reg WAIT = 0;
 
-    slow_clock c0 (.CLOCK(clk), .m(32'd999999), .SLOW_CLOCK(clk_50hz));
+//    slow_clock c0 (.CLOCK(clk), .m(32'd999999), .SLOW_CLOCK(clk_50hz));
+    slow_clock c0 (.CLOCK(clk), .m(32'd833333), .SLOW_CLOCK(clk_60hz));
     slow_clock c1 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
 
-    always @ (posedge clk_50hz)
+    always @ (posedge clk_60hz)
     begin
         TX_START <= 0;
+        
         if (GAME_START == 1 && GAME_END == 0) begin
             NEW_GAME <= 0;
             prev_dir <= dir;
@@ -242,8 +244,8 @@ module tank_move (input clk, [2:0] dir, movement, input GAME_START, GAME_END, RX
 
             USER_READY <= 0;
 
-            user_x_cen = 47;
-            user_y_cen = 58;
+            user_x_cen = 107;
+            user_y_cen = 192;
 
             to_transmit <= {3'b000, user_y_cen, user_x_cen};
             TX_START <= 1;
@@ -267,9 +269,9 @@ module tank_move (input clk, [2:0] dir, movement, input GAME_START, GAME_END, RX
 
         if (RX_DONE == 1 && WAIT == 1) begin
             WAIT <= 0;
-            if (GAME_START == 1) begin
-                opp_x_cen <= 95 - received_data[7:0];
-                opp_y_cen <= 63 - received_data[15:8];
+            if (GAME_START == 1 && GAME_END == 0) begin
+                opp_x_cen <= 215 - received_data[7:0];
+                opp_y_cen <= 245 - received_data[15:8];
                 case (received_data[18:16])
                     3'b000 : opp_dir <= 3'b100;
                     3'b001 : opp_dir <= 3'b101;
@@ -284,6 +286,13 @@ module tank_move (input clk, [2:0] dir, movement, input GAME_START, GAME_END, RX
             else begin
                 OPP_READY <= received_data == 16'haaaa ? 1 : 0;
             end
+        end
+        
+        if (GAME_END == 1) begin
+            opp_x_cen <= 108;
+            opp_y_cen <= 53;
+            opp_dir <= 3'b100;
+            OPP_READY <= received_data == 16'haaaa ? 1 : 0;
         end
 
     end
