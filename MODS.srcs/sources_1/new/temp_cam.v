@@ -26,7 +26,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 
     //Movement module to:
     //  1. constraint players coords INSIDE map boundary - 0 < x < 100, 0 < y < 150 (cannot be on map edge)
-    //  2. prevent players coords from being inside 40x40 pillar
+    //  2. prevent players coords from being inside pillar area
     //      > to consider tank width
     //          if tank is 3 pixels wide and player_x = 1, then render tank on top of map border at x = 0, since tank covers x = 0 to 2 wide.
     //          if tank is 3 pixels wide, then | player_x - pillar_x | at least 1, otherwise overlap...
@@ -36,17 +36,17 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
     
     reg [7:0] border_x; //bottom left corner of map border. Border == 100 * 150
     reg [7:0] border_y;
-    reg [7:0] border_x1_rel; //relative coord W.R.T camera coord
-    reg [7:0] border_y1_rel;
-    reg [7:0] border_x2_rel; //relative coord W.R.T camera coord
-    reg [7:0] border_y2_rel;
+    reg signed [15:0] border_x1_rel; //relative coord W.R.T camera coord
+    reg signed [15:0] border_y1_rel;
+    reg signed [15:0] border_x2_rel; //relative coord W.R.T camera coord
+    reg signed [15:0] border_y2_rel;
     
     reg [7:0] pillar_x; //bottom left corner of pillar. Pillar == 40 * 40
     reg [7:0] pillar_y;
-    reg [7:0] pillar_x1_rel;
-    reg [7:0] pillar_y1_rel;
-    reg [7:0] pillar_x2_rel;
-    reg [7:0] pillar_y2_rel;
+    reg signed [15:0] pillar_x1_rel;
+    reg signed [15:0] pillar_y1_rel;
+    reg signed [15:0] pillar_x2_rel;
+    reg signed [15:0] pillar_y2_rel;
     
     reg [7:0] opp_x_cen;
     reg [7:0] opp_y_cen;
@@ -69,8 +69,8 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
         user_y_cen = 48;
         border_x = 0; //left side
         border_y = 0; //top sidde
-        pillar_x = 30; //left side
-        pillar_y = 55; //top side
+        pillar_x = 35; //left side
+        pillar_y = 60; //top side
     end
                 
     reg [15:0] box_colour = 0;     
@@ -551,6 +551,9 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                            ((y == opp_y_cen + 4) && (x <= opp_x_cen) && (x >= opp_x_cen - 1));
 
     always @ (posedge clk) begin
+    
+        user_col <= 0;
+        opp_col <= 0;
         has_opp <= 1;
         has_user <= 1;
         
@@ -565,24 +568,12 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
         border_y2_rel = border_y1_rel + 150;
         pillar_x1_rel = pillar_x - camera_x + 48; 
         pillar_y1_rel = pillar_y - camera_y + 32;
-        pillar_x2_rel = pillar_x1_rel + 40;
-        pillar_y2_rel = pillar_y1_rel + 40;
+        pillar_x2_rel = pillar_x1_rel + 30;
+        pillar_y2_rel = pillar_y1_rel + 30;
         opp_x_cen = enemy_x - camera_x + 48;
         opp_y_cen = enemy_y - camera_y + 32;
         
-        //render OLED display
-
-        //render border
-        if (x == border_x1_rel || x == border_x1_rel + 1 || x == border_x2_rel || x == border_x2_rel - 1 ||
-            y == border_y1_rel || y == border_y1_rel + 1||  y == border_y2_rel ||  y == border_y2_rel - 1) begin
-            camera <= white_c;
-        end
-        
-        //render pillar
-        if (x >= pillar_x1_rel && x < pillar_x2_rel ||
-            y >= pillar_y1_rel && y < pillar_y2_rel) begin
-            camera <= white_c;    
-        end
+        //render OLED display 
 
         case (user_dir)
             3'b000 : begin // D position 1 (facing forward)
@@ -597,7 +588,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_user <= 0;
-                    user_col <= 0;
+                    //user_col <= 0;
                 end
             end
             
@@ -613,7 +604,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_user <= 0;
-                    user_col <= 0;
+                    //user_col <= 0;
                 end
             end
             
@@ -629,7 +620,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_user <= 0;
-                    user_col <= 0;
+                    //user_col <= 0;
                 end
             end
             
@@ -645,7 +636,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_user <= 0;
-                    user_col <= 0;
+                    //user_col <= 0;
                 end
             end
             
@@ -661,7 +652,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_user <= 0;
-                    user_col <= 0;
+                    //user_col <= 0;
                 end
             end
           
@@ -677,7 +668,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_user <= 0;
-                    user_col <= 0;
+                    //user_col <= 0;
                 end
             end
                         
@@ -693,7 +684,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_user <= 0;
-                    user_col <= 0;
+                    //user_col <= 0;
                 end
             end
             
@@ -709,7 +700,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_user <= 0;
-                    user_col <= 0;
+                    //user_col <= 0;
                 end
             end
             
@@ -728,7 +719,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_opp <= 0;
-                    opp_col <= 0;
+                    //opp_col <= 0;
                 end
             end
             
@@ -744,7 +735,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_opp <= 0;
-                    opp_col <= 0;
+                    //opp_col <= 0;
                 end
             end
             
@@ -760,7 +751,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_opp <= 0;
-                    opp_col <= 0;
+                    //opp_col <= 0;
                 end
             end
             
@@ -776,7 +767,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_opp <= 0;
-                    opp_col <= 0;
+                    //opp_col <= 0;
                 end
             end
             
@@ -792,7 +783,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_opp <= 0;
-                    opp_col <= 0;
+                    //opp_col <= 0;
                 end
             end
           
@@ -808,7 +799,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_opp <= 0;
-                    opp_col <= 0;
+                    //opp_col <= 0;
                 end
             end
                         
@@ -824,7 +815,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_opp <= 0;
-                    opp_col <= 0;
+                    //opp_col <= 0;
                 end
             end
             
@@ -840,7 +831,7 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 end
                 else begin
                     has_opp <= 0;
-                    opp_col <= 0;
+                    //opp_col <= 0;
                 end
             end
             
@@ -857,6 +848,22 @@ module temp_cam(input clk, input [12:0] x, y, input [7:0] user_x, user_y, enemy_
                 camera <= yellow_c;
             end
             else camera <= 0;
+        end
+        
+        //render border after camera receives user_col and opp_col;
+//        if ((x == border_x1_rel || x == border_x2_rel) && (y >= border_y1_rel && y < border_y2_rel) ||
+//            (y == border_y1_rel || y == border_y2_rel) && (x >= border_x1_rel && y < border_x2_rel)) begin
+        if ((x == border_x1_rel && y < border_y2_rel && y >= border_y1_rel) ||
+            (x == border_x2_rel && y < border_y2_rel && y >= border_y1_rel) ||
+            (y == border_y1_rel && x < border_x2_rel && x >= border_x1_rel) ||
+            (y == border_y2_rel && x < border_x2_rel && x >= border_x1_rel)) begin
+            camera <= white_c;
+        end
+        
+        //render pillar
+        if (x >= pillar_x1_rel && x < pillar_x2_rel &&
+            y >= pillar_y1_rel && y < pillar_y2_rel) begin
+            camera <= white_c;    
         end
         
     end
