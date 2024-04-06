@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="38" Path="C:/Users/lenovo/Documents/School/ee2026/MODS/MODS.xpr">
+<Project Version="7" Minor="38" Path="C:/Users/lenovo/Documents/School/ee2026/proj backup/MODS.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="4c3086506e88427ca6f65a71a9035e44"/>
