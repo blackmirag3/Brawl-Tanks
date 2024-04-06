@@ -11,29 +11,108 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw, 
+module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
                     inout PS2Clk, PS2Data,
-                    output [7:0] JC, [15:0] led, 
-                    output reg [6:0] seg = 7'b1111111, output reg [3:0] an, output reg dp = 1);
+                    output [7:0] JC, reg [15:0] led, 
+                    output reg [6:0] seg = 7'b1111111, output reg [3:0] an, output reg dp = 1,
+                    output [2:0] TX);
     
-    wire clk_6p25Mhz, clk_12p5Mhz, clk_25Mhz, slow_clk;
+    reg [31:0] test = 0;
+    
+    wire clk_6p25Mhz, clk_12p5Mhz, clk_25Mhz, clk_1khz;
     wire fb, send_pixel, sample_pixel;
     reg [15:0] oled_data;
     wire [12:0] pixel_index, x, y;
     
-    wire [11:0] xpos, ypos;
-    wire [3:0] zpos;
     wire left, middle, right, m_event;
+    wire m_left;
     
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
     
-    assign led[3:0] = sw[4:1];
+    wire RX_DONE_TANK, TX_START_TANK, TX_BIT;
+    wire [15:0] camera;
+    
+    wire [18:0] user_data, opp_data;
+    wire [2:0] user_move_state, user_dir_state, opp_dir_state;
+    wire [7:0] user_x_pos, user_y_pos, opp_x_pos, opp_y_pos;
+    wire [15:0] ready_screen;
+    
+    wire [18:0] user_hit, opp_hit;
+    wire RX_DONE_HP, TX_START_HP, GAME_END, USER_WIN;
+    wire GAME_START, USER_READY, OPP_READY, NEW_GAME;
+    
+    wire [18:0] user_bullet_data, opp_bullet_data;
+    wire RX_DONE_B, TX_START_B;
+    
+    wire can_up, can_down, can_left, can_right;
+
+    check_movement m0 (.user_x_cen(user_x_pos), .user_y_cen(user_y_pos), .opp_x_cen(opp_x_pos), .opp_y_cen(opp_y_pos),
+                       .can_up(can_up), .can_down(can_down), .can_left(can_left), .can_right(can_right));
+
+    wire hit;
+    wire [6:0] led_hp;
+    
+    wire [2:0] bullets_fired;
+    wire [39:0] user_b_x, user_b_y, opp_b_x, opp_b_y;
+    
+    // game logic sort of
+    game_state gs (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen), .pixel_index(pixel_index),
+                   .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START),
+                   .GAME_END(GAME_END), .USER_WIN(USER_WIN), .NEW_GAME(NEW_GAME));
+    
+    // for tank shooting
+    debouncer d0 (.clk(clk), .btn(left), .signal(m_left));
+    
+    transmitter t_bullet (.clk(clk), .START(TX_START_B), .transmit_data(user_bullet_data), .TRANSMIT_BIT(TX[2]));
+    receiver r_bullet (.clk(clk), .RECEIVE_BIT(RX[2]), .RX_DONE(RX_DONE_B), .received(opp_bullet_data));
+    
+    shooting s_unit (.clk(clk), .FIRE_TRIGGER(m_left), .GAME_START(GAME_START), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
+                     .dir(user_dir_state), .opp_dir(opp_dir_state), .TX_START_B(TX_START_B),
+                     .RX_DONE_B(RX_DONE_B), .received_b(opp_bullet_data),
+                     .user_pos({user_y_pos, user_x_pos}), .opp_pos({opp_y_pos, opp_x_pos}),
+                     .FIRED(bullets_fired), .transmit_b(user_bullet_data), .opp_hit(hit),
+                     .b_x_cen(user_b_x), .b_y_cen(user_b_y), .ob_x_cen(opp_b_x), .ob_y_cen(opp_b_y));
+    
+//    assign led[1] = OPP_READY;
+//    assign led[2] = USER_READY;
+//    assign TX = TRANSMITTING ? TX_BIT : 1;
+    
+    // for tank movement
+    tank_move_ctrl ctrl_unit (.clk(clk), .btnU(btnU), .btnD(btnD), .btnL(btnL), .btnR(btnR), .right_mouse(right),
+                              .START(GAME_START), .NEW_GAME(NEW_GAME), .can_left(can_left), .can_right(can_right),
+                              .movement(user_move_state), .dir_state(user_dir_state));
+    
+    transmitter t_tank (.clk(clk), .START(TX_START_TANK), .transmit_data(user_data), .TRANSMIT_BIT(TX[0]));
+    receiver r_tank (.clk(clk), .RECEIVE_BIT(RX[0]), .RX_DONE(RX_DONE_TANK), .received(opp_data));
+
+    tank_move t0 (.clk(clk), .RX_DONE(RX_DONE_TANK), .can_up(can_up), .can_down(can_down), .can_left(can_left), .can_right(can_right), .btnC(btnC),
+                  .GAME_START(GAME_START), .USER_READY(USER_READY), .OPP_READY(OPP_READY), .NEW_GAME(NEW_GAME), .GAME_END(GAME_END),
+                  .received_data(opp_data), .to_transmit(user_data), .TX_START(TX_START_TANK), .dir(user_dir_state), .movement(user_move_state),
+                  .user_x_cen(user_x_pos), .user_y_cen(user_y_pos), .opp_x_cen(opp_x_pos), .opp_y_cen(opp_y_pos), .opp_dir(opp_dir_state));
+    
+    // camera output
+//    temp_cam cam (.clk(clk_25Mhz), .x(x), .y(y), .user_x_cen(user_x_pos), .user_y_cen(user_y_pos), .opp_x_cen(opp_x_pos), .opp_y_cen(opp_y_pos),
+//                  .user_dir(user_dir_state), .opp_dir(opp_dir_state),
+//                  .b_x_cen(user_b_x), .b_y_cen(user_b_y), .ob_x_cen(opp_b_x), .ob_y_cen(opp_b_y),
+//                  .camera(camera));
+    camera_output cam (.clk(clk_25Mhz), .x(x), .y(y), 
+                       .user_x_cen({1'b0, user_x_pos}), .user_y_cen({1'b0, user_y_pos}), .opp_x_cen({1'b0, opp_x_pos}), .opp_y_cen({1'b0, opp_y_pos}),
+                       .user_dir(user_dir_state), .opp_dir(opp_dir_state),
+                       .b_x_cen(user_b_x), .b_y_cen(user_b_y), .ob_x_cen(opp_b_x), .ob_y_cen(opp_b_y),
+                       .camera(camera));
+
+    // tank hit points
+    transmitter t_hp (.clk(clk), .START(TX_START_HP), .transmit_data(opp_hit), .TRANSMIT_BIT(TX[1]));
+    receiver r_hp (.clk(clk), .RECEIVE_BIT(RX[1]), .RX_DONE(RX_DONE_HP), .received(user_hit));
+    health_logic hp (.clk(clk), .hit(hit), .GAME_START(GAME_START), .RX_DONE(RX_DONE_HP), .user_hit(user_hit[15:0]),
+                     .GAME_END(GAME_END), .USER_WIN(USER_WIN), .TX_START(TX_START_HP), .opp_hit(opp_hit[15:0]),
+                     .NEW_GAME(NEW_GAME), .hp_bar(led_hp));
     
     slow_clock c0 (.CLOCK(clk), .m(32'd7), .SLOW_CLOCK(clk_6p25Mhz));
     slow_clock c1 (.CLOCK(clk), .m(32'd3), .SLOW_CLOCK(clk_12p5Mhz));
     slow_clock c2 (.CLOCK(clk), .m(32'd1), .SLOW_CLOCK(clk_25Mhz));
-    slow_clock c3 (.CLOCK(clk), .m(32'd49999999), .SLOW_CLOCK(slow_clk));
+    slow_clock c3 (.CLOCK(clk), .m(32'd49999), .SLOW_CLOCK(clk_1khz));
     
     Oled_Display unit_oled (.clk(clk_6p25Mhz), 
                         .reset(0), 
@@ -57,17 +136,98 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [15:0] sw,
                         .sety(0),
                         .setmax_x(0),
                         .setmax_y(0),
-                        .xpos(xpos),
-                        .ypos(ypos),
-                        .zpos(zpos),
+                        .xpos(0),
+                        .ypos(0),
+                        .zpos(0),
                         .left(left),
                         .middle(middle),
                         .right(right),
                         .new_event(m_event),
                         .ps2_clk(PS2Clk),
                         .ps2_data(PS2Data));
-                        
-                    
     
+    reg [1:0] end_screen_state = 0;
+    reg [31:0] hit_indicator = 0;
+                                
+    always @ (posedge clk)
+    begin
+        an <= 4'b1111;
+        oled_data <= GAME_START == 1 && GAME_END == 0 ? camera : ready_screen;
+        led[15:9] <= led_hp;
+        
+        led[7] <= hit_indicator > 0;
+        
+        if (GAME_START && GAME_END == 0) begin
+            an[3:0] <= 4'b1110;
+            case (bullets_fired)
+                0 : seg[6:0] <= 7'b0010010;
+                1 : seg[6:0] <= 7'b0011001;
+                2 : seg[6:0] <= 7'b0110000;
+                3 : seg[6:0] <= 7'b0100100;
+                4 : seg[6:0] <= 7'b1111001;
+                default : begin
+                    seg[6:0] <= 7'b0111111;
+                    an[3:0] <= 4'b0000;
+                end
+            endcase
+        end
+        
+        else if (GAME_END) begin
+            if (USER_WIN) begin
+                case (end_screen_state)
+                    2'b00 : begin
+                        an[3:0] <= 4'b0111;
+                        seg[6:0] <= 7'b1111111;
+                    end
+                    2'b01 : begin
+                        an[3:0] <= 4'b1011;
+                        seg[6:0] <= 7'b0010001;
+                    end
+                    2'b10 : begin
+                        an[3:0] <= 4'b1101;
+                        seg[6:0] <= 7'b0001000;
+                    end
+                    2'b11: begin
+                        an[3:0] <= 4'b1110;
+                        seg[6:0] <= 7'b0010001;
+                    end
+                endcase
+            end
+            else begin
+                case (end_screen_state)
+                    2'b00 : begin
+                        an[3:0] <= 4'b0111;
+                        seg[6:0] <= 7'b1000111;
+                    end
+                    2'b01 : begin
+                        an[3:0] <= 4'b1011;
+                        seg[6:0] <= 7'b1000000;
+                    end
+                    2'b10 : begin
+                        an[3:0] <= 4'b1101;
+                        seg[6:0] <= 7'b0010010;
+                    end
+                    2'b11: begin
+                        an[3:0] <= 4'b1110;
+                        seg[6:0] <= 7'b0000110;
+                    end
+                endcase
+            end
+        end
+    end
+    
+    reg start_hit_count = 0;
+    always @ (posedge clk_1khz) begin
+        end_screen_state <= end_screen_state == 3 ? 0 : end_screen_state + 1;
+        
+        if (hit) begin
+            hit_indicator <= 1;
+            start_hit_count <= 1;
+        end
+        if (start_hit_count) begin
+            hit_indicator <= hit_indicator == 400 ? 0 : hit_indicator + 1;
+            start_hit_count <= hit_indicator == 400 ? 0 : 1;
+        end
+    end
                         
 endmodule
