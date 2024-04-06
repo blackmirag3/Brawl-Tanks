@@ -57,7 +57,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
     wire [39:0] user_b_x, user_b_y, opp_b_x, opp_b_y;
     
     // game logic sort of
-    game_state gs (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen),
+    game_state gs (.clk(clk), .x(x), .y(y), .oled_screen(ready_screen), .pixel_index(pixel_index),
                    .USER_READY(USER_READY), .OPP_READY(OPP_READY), .GAME_START(GAME_START),
                    .GAME_END(GAME_END), .USER_WIN(USER_WIN), .NEW_GAME(NEW_GAME));
     
@@ -147,6 +147,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
                         .ps2_data(PS2Data));
     
     reg [1:0] end_screen_state = 0;
+    reg [31:0] hit_indicator = 0;
                                 
     always @ (posedge clk)
     begin
@@ -154,19 +155,7 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
         oled_data <= GAME_START == 1 && GAME_END == 0 ? camera : ready_screen;
         led[15:9] <= led_hp;
         
-//        if (RX_DONE_TANK == 0) begin
-//            led[9] <= 1;
-//        end
-//        if (led[9] == 1) begin
-//            test <= test == 99999 ? 0 : test + 1;
-//            led[9] <= test == 99999 ? 0 : 1;
-//        end
-        
-//        led[10] <= OPP_READY;
-//        led[11] <= USER_READY;
-        
-//        led[13] <= ~GAME_END;
-//        led[15] <= m_left;
+        led[7] <= hit_indicator > 0;
         
         if (GAME_START && GAME_END == 0) begin
             an[3:0] <= 4'b1110;
@@ -227,8 +216,18 @@ module Top_Student (input clk, btnC, btnU, btnL, btnR, btnD, [2:0] RX,
         end
     end
     
+    reg start_hit_count = 0;
     always @ (posedge clk_1khz) begin
         end_screen_state <= end_screen_state == 3 ? 0 : end_screen_state + 1;
+        
+        if (hit) begin
+            hit_indicator <= 1;
+            start_hit_count <= 1;
+        end
+        if (start_hit_count) begin
+            hit_indicator <= hit_indicator == 400 ? 0 : hit_indicator + 1;
+            start_hit_count <= hit_indicator == 400 ? 0 : 1;
+        end
     end
                         
 endmodule
