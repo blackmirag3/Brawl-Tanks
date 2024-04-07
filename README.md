@@ -1,5 +1,5 @@
 # BRAWL TANKS
-A 1v1 Brawl Stars knock-off, but with tanks. And written in Verilog.
+A 1v1 Brawl Stars knock-off, but with tanks. And played on an FPGA board.
 
 ![photo_2024-04-06_20-48-35](https://github.com/blackmirag3/Brawl-Tanks/assets/78994143/ef0d0c18-9a45-405e-90fc-fb8c873442dc)
 ## INTRODUCTION
