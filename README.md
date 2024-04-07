@@ -15,16 +15,15 @@ Both players start off with 7 health points (HP), and lose 1 HP when hit with th
 
 After the game ends, players can choose to play again by repeating the initial process of pressing btnC and waiting for the other player to do the same.
 
+![photo_2024-04-06_12-20-40](https://github.com/blackmirag3/Brawl-Tanks/assets/78994143/08ca4ab5-ddde-4fc3-b2cb-a4cb5f3f9454)
+
 ## TECHNICAL DEMONSTRATION
 Here is a low quality video of the PVP action (sorry we are not paid enough):
 
 www.youtube.com/watch?v=juCPU7xvqJU&ab_channel=ShuiHonSiew
 
 # TECHNICAL FEATURES
-![photo_2024-04-06_12-20-40](https://github.com/blackmirag3/Brawl-Tanks/assets/78994143/08ca4ab5-ddde-4fc3-b2cb-a4cb5f3f9454)
 
-
- 
 ## UART Communication for 2 player PVP
 UART is implemented for data communication between the two separate boards. The UART system implemented is able to transmit and receive a data stream of at most 18 bits at a time at a baud rate of 500k. The maximum data stream was chosen to be 18 because it is the largest size of data that is required to be transmitted at a time. Before the game starts, the player’s ready state will be communicated between boards. During the game, the following data will be transmitted between boards - player's centre positions and direction on the map, player’s bullet states, and player’s bullet hitting the opposing player. Each type of data is transmitted through its own UART data line, making use of 3 different UART connections. This is to prevent complicating the data packets with different types of data as each type of data will only be transmitted at certain circumstances. For each 18 bit data stream,
 Player’s centre position contains 3 bit direction value, 8 bit x coordinate and 8 bit y coordinate of the tank’s centre. This is only transmitted when a player tank has moved.
